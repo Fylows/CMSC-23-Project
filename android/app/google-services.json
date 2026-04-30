@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "693928400353",
+    "project_id": "elbi-eats",
+    "storage_bucket": "elbi-eats.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:693928400353:android:3de87ba3d7f1a314606ea0",
+        "android_client_info": {
+          "package_name": "com.example.elbi_eats"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAVLASvtD4QZU3jEKMqN3muhyLw3hiDalk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
