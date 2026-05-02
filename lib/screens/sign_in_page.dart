@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:elbi_eats/providers/auth_provider.dart';
 
+///
+/// COLORS:
+/// Orange - Color(0xFFFA5800)
+/// Red - Color(0xFFFA5800)
+/// 
+
 class SignInPage extends StatefulWidget {
   // navigation fallback (for signup and forgot password)
   final VoidCallback? onSignUpTapped;
@@ -125,8 +131,8 @@ class _SignInPageState extends State<SignInPage> {
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                           colors: [
-                            Colors.orange.shade600,
-                            Colors.red.shade600
+                            Color(0xFFFA5800),
+                            Color(0xFFCB2020),
                           ],
                         ),
                       ),
@@ -230,7 +236,7 @@ class _SignInPageState extends State<SignInPage> {
                           Expanded(
                             child: Container(
                               height: 2,
-                              color: Colors.orange.shade600,
+                              color: Color(0xFFFA5800),
                             ),
                           ),
                           Expanded(
@@ -341,19 +347,45 @@ class _SignInPageState extends State<SignInPage> {
                       ),
                       const SizedBox(height: 16),
 
-                      /* forgot password link */
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: authProvider.isLoading
-                            ? null
-                            : widget.onForgotPasswordTapped, 
-                          child: const Text('Forgot Password?'),
+                      /* remember me + forgot password link */
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Checkbox(
+                                value: rememberMe, 
+                                onChanged: authProvider.isLoading
+                                  ? null
+                                  : (value) {
+                                    setState(() {
+                                      rememberMe = value ?? false;
+                                    });
+                                  },
+                              ),
+                              const Text('Remember me'),
+                            ],
                           ),
+                          TextButton(
+                            onPressed: authProvider.isLoading
+                              ? null
+                              : widget.onForgotPasswordTapped,
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                            ), 
+                            child: Text(
+                              'Forgot Password ?',
+                              style: TextStyle(
+                                color: Colors.red.shade600,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 24),
 
-                      /* sign in button */
+                      /* log in button */
                       // or spinner if loading
                       if (authProvider.isLoading)
                         const Center(
@@ -366,14 +398,21 @@ class _SignInPageState extends State<SignInPage> {
                           // disable button while loading
                           onPressed: () => handleSignIn(authProvider),
                           style: ElevatedButton.styleFrom(
+                            backgroundColor: Color(0xFFFA5800),
                             padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                           ),
                           child: const Text(
-                            'Sign In',
-                            style: TextStyle(fontSize: 16),
+                            'Log In',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
-                      
                       const SizedBox(height: 24),
 
                       // error message
@@ -392,40 +431,6 @@ class _SignInPageState extends State<SignInPage> {
                           ),
                         ),
                       const SizedBox(height: 32),
-
-                      /* divider */
-                      const Row(
-                        children: [
-                          Expanded(child: Divider()),
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 16),
-                            child: Text('Or'),
-                          ),
-                          Expanded(child: Divider()),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-                      
-                      /* sign up link */
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text("Don't have an acount?"),
-                          GestureDetector(
-                            onTap: authProvider.isLoading
-                              ? null
-                              : widget.onSignUpTapped,
-                            child: Text(
-                              'Sign Up',
-                              style: TextStyle(
-                                color: Theme.of(context).primaryColor,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          )
-                        ],
-                      )
-                      
                     ],
                   ),
                 ),
