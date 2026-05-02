@@ -155,7 +155,7 @@ class _SignInPageState extends State<SignInPage> {
                     Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,
-                        vertical: 40,
+                        vertical: 90,
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -164,7 +164,7 @@ class _SignInPageState extends State<SignInPage> {
                           const Text(
                             'Explore the taste of Los Banos!',
                             style: TextStyle(
-                              fontSize: 28,
+                              fontSize: 35,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                               // TODO: add inter font or something (do later)
@@ -194,7 +194,7 @@ class _SignInPageState extends State<SignInPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 5),
 
                       // tab selector: Log In/Sign Up
                       // refer to figma wireframe
