@@ -22,6 +22,9 @@ class _SignInPageState extends State<SignInPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
+  bool rememberMe = false;
+  bool passwordVisible = false;
+
   // for tracking validation
   // (separate from the one in AuthProvider)
   String? emailError;
@@ -107,34 +110,91 @@ class _SignInPageState extends State<SignInPage> {
     return Consumer<AuthProvider>(
       builder: (context, authProvider, child) {
         return Scaffold(
-          appBar: AppBar(
-            title: Text('Sign In'),
-            centerTitle: true,
-          ),
+          // we use a stack instead of an appbar
+          // **removed appbar
           body: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // title
-                const Text(
-                  'Explore the taste of Los Banos!',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    // TODO: add inter font or something (do later)
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Sign in to your account',
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 32),
+                Stack(
+                  children: [
+                    // gradient background
+                    Container(
+                      height: 280,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Colors.orange.shade600,
+                            Colors.red.shade600
+                          ],
+                        ),
+                      ),
+                    ),
 
+                    // TODO: logo or some food illustration overlay
+                    // should replace this with an actual image asset later
+                    Positioned.fill(
+                      child: Opacity(
+                        opacity: 0.2,
+                        child: Icon(
+                          Icons.restaurant,
+                          size: 200,
+                          color: Colors.white.withValues(alpha: 0.2), // withOpacity is deprecated
+                        ),
+                      ),
+                    ),
+
+                    // text content on top of gradient
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 40,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // title
+                          const Text(
+                            'Explore the taste of Los Banos!',
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              // TODO: add inter font or something (do later)
+                            ),
+                          ),
+
+                          const SizedBox(height: 16),
+                          const Text(
+                            'Create an account or log in to explore about our app',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.white70,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  ],
+                ),
+
+                // ====================================
+                //        LOGIN/SIGNUP tabs & form
+                // ====================================
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SizedBox(height: 32),
+
+                      // tab selector: Log In/Sign Up
+                      // refer to figma wireframe
+                    ],
+                  ),
+                ),
                 /* email field */
                 TextField(
                   controller: emailController,
