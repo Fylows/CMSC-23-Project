@@ -192,126 +192,178 @@ class _SignInPageState extends State<SignInPage> {
 
                       // tab selector: Log In/Sign Up
                       // refer to figma wireframe
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Center(
+                              child: Text(
+                                'Log In',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          Expanded(
+                            child: Center(
+                              child: GestureDetector(
+                                onTap: widget.onSignUpTapped,
+                                child: Text(
+                                  'Sign Up',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                              ),
+                            )
+                          ),
+                        ],
+                      ),
+
+                      // underline for the active tab
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              height: 2,
+                              color: Colors.orange.shade600,
+                            ),
+                          ),
+                          Expanded(
+                            child: Container(
+                              height: 2,
+                              color: Colors.grey.shade300,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 32),
+
+                      /* email field */
+                      TextField(
+                        controller: emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        enabled: !authProvider.isLoading, // basically disable the field while loading
+                        decoration: InputDecoration(
+                          labelText: 'Email',
+                          hintText: 'you@example.com',
+                          errorText: emailError,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          prefixIcon: const Icon(Icons.email)
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      /* password field */
+                      TextField(
+                        controller: passwordController,
+                        obscureText: true,
+                        enabled: !authProvider.isLoading,
+                        decoration: InputDecoration(
+                          labelText: 'Password',
+                          errorText: passwordError,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          prefixIcon: const Icon(Icons.lock),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+
+                      /* forgot password link */
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: authProvider.isLoading
+                            ? null
+                            : widget.onForgotPasswordTapped, 
+                          child: const Text('Forgot Password?'),
+                          ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      /* sign in button */
+                      // or spinner if loading
+                      if (authProvider.isLoading)
+                        const Center(
+                          // show spinner while loading
+                          child: CircularProgressIndicator(),
+                        )
+                      else
+                      // show button
+                        ElevatedButton(
+                          // disable button while loading
+                          onPressed: () => handleSignIn(authProvider),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          child: const Text(
+                            'Sign In',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        ),
+                      
+                      const SizedBox(height: 24),
+
+                      // error message
+                      // if signin fails
+                      if (authProvider.errorMessage != null)
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade50,
+                            border: Border.all(color: Colors.red.shade200),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            authProvider.errorMessage!,
+                            style: TextStyle(color: Colors.red.shade800),
+                          ),
+                        ),
+                      const SizedBox(height: 32),
+
+                      /* divider */
+                      const Row(
+                        children: [
+                          Expanded(child: Divider()),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 16),
+                            child: Text('Or'),
+                          ),
+                          Expanded(child: Divider()),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      
+                      /* sign up link */
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text("Don't have an acount?"),
+                          GestureDetector(
+                            onTap: authProvider.isLoading
+                              ? null
+                              : widget.onSignUpTapped,
+                            child: Text(
+                              'Sign Up',
+                              style: TextStyle(
+                                color: Theme.of(context).primaryColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          )
+                        ],
+                      )
+                      
                     ],
                   ),
                 ),
-                /* email field */
-                TextField(
-                  controller: emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  enabled: !authProvider.isLoading, // basically disable the field while loading
-                  decoration: InputDecoration(
-                    labelText: 'Email',
-                    hintText: 'you@example.com',
-                    errorText: emailError,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    prefixIcon: const Icon(Icons.email)
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                /* password field */
-                TextField(
-                  controller: passwordController,
-                  obscureText: true,
-                  enabled: !authProvider.isLoading,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    errorText: passwordError,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    prefixIcon: const Icon(Icons.lock),
-                  ),
-                ),
-                const SizedBox(height: 8),
-
-                /* forgot password link */
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: authProvider.isLoading
-                      ? null
-                      : widget.onForgotPasswordTapped, 
-                    child: const Text('Forgot Password?'),
-                    ),
-                ),
-                const SizedBox(height: 24),
-
-                /* sign in button */
-                // or spinner if loading
-                if (authProvider.isLoading)
-                  const Center(
-                    // show spinner while loading
-                    child: CircularProgressIndicator(),
-                  )
-                else
-                // show button
-                  ElevatedButton(
-                    // disable button while loading
-                    onPressed: () => handleSignIn(authProvider),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: const Text(
-                      'Sign In',
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  ),
-                
-                const SizedBox(height: 24),
-
-                // error message
-                // if signin fails
-                if (authProvider.errorMessage != null)
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.red.shade50,
-                      border: Border.all(color: Colors.red.shade200),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      authProvider.errorMessage!,
-                      style: TextStyle(color: Colors.red.shade800),
-                    ),
-                  ),
-                const SizedBox(height: 32),
-
-                /* divider */
-                const Row(
-                  children: [
-                    Expanded(child: Divider()),
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16),
-                      child: Text('Or'),
-                    ),
-                    Expanded(child: Divider()),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                
-                /* sign up link */
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text("Don't have an acount?"),
-                    GestureDetector(
-                      onTap: authProvider.isLoading
-                        ? null
-                        : widget.onSignUpTapped,
-                      child: Text(
-                        'Sign Up',
-                        style: TextStyle(
-                          color: Theme.of(context).primaryColor,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    )
-                  ],
-                )
               ],
             ),
           ),
