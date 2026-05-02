@@ -4,7 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'screens/sign_in_page.dart';
+import 'screens/auth_wrapper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,13 +22,13 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()), 
       ],
       child: MaterialApp(
-        title: 'Flutter Demo',
+        title: 'Elbi Eats',
         theme: ThemeData(
           useMaterial3: true,
           // figma says inter but i used outfit here
           textTheme: GoogleFonts.outfitTextTheme(),
         ),
-        home: const SignInPage(),
+        home: const AuthWrapper(),
       ),
     );
   }

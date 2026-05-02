@@ -5,7 +5,7 @@ import 'package:elbi_eats/providers/auth_provider.dart';
 ///
 /// COLORS:
 /// Orange - Color(0xFFFA5800)
-/// Red - Color(0xFFFA5800)
+/// Red - Color(0xFFCB2020)
 /// 
 
 class SignInPage extends StatefulWidget {
@@ -186,7 +186,7 @@ class _SignInPageState extends State<SignInPage> {
                 ),
 
                 // ====================================
-                //        LOGIN/SIGNUP tabs & form
+                //        LOGIN tabs & form
                 // ====================================
 
                 Padding(
@@ -309,7 +309,7 @@ class _SignInPageState extends State<SignInPage> {
                             obscureText: !passwordVisible,
                             enabled: !authProvider.isLoading,
                             decoration: InputDecoration(
-                              labelText: '********',
+                              labelText: '••••••••',
                               errorText: passwordError,
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
