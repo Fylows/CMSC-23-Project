@@ -244,37 +244,102 @@ class _SignInPageState extends State<SignInPage> {
                       const SizedBox(height: 32),
 
                       /* email field */
-                      TextField(
-                        controller: emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        enabled: !authProvider.isLoading, // basically disable the field while loading
-                        decoration: InputDecoration(
-                          labelText: 'Email',
-                          hintText: 'you@example.com',
-                          errorText: emailError,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Email',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
-                          prefixIcon: const Icon(Icons.email)
-                        ),
+
+                          const SizedBox(height: 8),
+                          TextField(
+                            controller: emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            enabled: !authProvider.isLoading, // basically disable the field while loading
+                            decoration: InputDecoration(
+                              hintText: 'elbieats@up.edu.ph',
+                              errorText: emailError,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(
+                                  color: Colors.orange.shade600,
+                                  width: 2,
+                                ),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 20),
 
                       /* password field */
-                      TextField(
-                        controller: passwordController,
-                        obscureText: true,
-                        enabled: !authProvider.isLoading,
-                        decoration: InputDecoration(
-                          labelText: 'Password',
-                          errorText: passwordError,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Password',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
-                          prefixIcon: const Icon(Icons.lock),
-                        ),
+                          const SizedBox(height: 8),
+                          TextField(
+                            controller: passwordController,
+                            obscureText: !passwordVisible,
+                            enabled: !authProvider.isLoading,
+                            decoration: InputDecoration(
+                              labelText: '********',
+                              errorText: passwordError,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(
+                                  color: Colors.orange.shade600,
+                                  width: 2,
+                                ),
+                              ),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  passwordVisible
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                                  color: Colors.grey.shade600,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    passwordVisible = !passwordVisible;
+                                  });
+                                }, 
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 16),
 
                       /* forgot password link */
                       Align(
