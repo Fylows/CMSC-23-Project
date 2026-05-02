@@ -2,6 +2,7 @@ import 'package:elbi_eats/firebase_options.dart';
 import 'package:elbi_eats/providers/auth_provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'screens/sign_in_page.dart';
 
@@ -23,8 +24,9 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Flutter Demo',
         theme: ThemeData(
-
-          colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+          useMaterial3: true,
+          // figma says inter but i used outfit here
+          textTheme: GoogleFonts.outfitTextTheme(),
         ),
         home: const SignInPage(),
       ),
