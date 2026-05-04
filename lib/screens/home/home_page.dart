@@ -1,34 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:elbi_eats/providers/auth/auth_provider.dart';
-import '../../widgets/drawer.dart';
 import '../auth/auth_wrapper.dart';
+import '../../widgets/custom_drawer.dart';
 
 // TODO: create homescreen
 // this is just a placeholder home screen for testing
 // repalce this with actual homescreen later
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Home'),
-        actions: [
-          IconButton(
-            onPressed: () {
-              context.read<AuthProvider>().signOut();
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const AuthWrapper()),
-              );
-            },
-            icon: const Icon(Icons.logout),
-          ),
-        ],
-      ),
-      drawer: MyDrawer(),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

@@ -1,46 +1,72 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:elbi_eats/providers/auth/auth_provider.dart';
+import 'custom_drawer.dart';
 
-class MainScaffold extends StatefulWidget {
+class MainScaffold extends StatelessWidget {
   final Widget child;
-  final String currentRoute;
 
-  const MainScaffold({
-    super.key,
-    required this.child,
-    required this.currentRoute,
-  });
-
-  @override
-  State<MainScaffold> createState() => _MainScaffoldState();
-}
-
-class _MainScaffoldState extends State<MainScaffold> {
-  final _navItems = [
-    (icon: Icons.home_rounded, label: 'Home', route: '/home'),
-    (icon: Icons.kitchen_rounded, label: 'Pantry', route: '/pantry'),
-    (icon: Icons.chat_rounded, label: 'Chat', route: '/chat'),
-    (icon: Icons.shopping_cart_rounded, label: 'Cart', route: '/cart'),
-  ];
-
-  void _onTap(String route) {
-    final currentRoute = ModalRoute.of(context)?.settings.name;
-    if (currentRoute == route) return;
-
-    Navigator.pushNamed(context, route);
-  }
+  const MainScaffold({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {
+    final navItems = [
+      (icon: Icons.home_rounded, label: 'Home', route: '/home'),
+      (icon: Icons.kitchen_rounded, label: 'Pantry', route: '/pantry'),
+      (icon: Icons.chat_rounded, label: 'Chat', route: '/chat'),
+      (icon: Icons.shopping_cart_rounded, label: 'Cart', route: '/cart'),
+    ];
+
     final currentRoute = ModalRoute.of(context)?.settings.name;
 
     return Scaffold(
-      body: widget.child,
+      drawer: const CustomDrawer(),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu, color: Colors.black),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
+        title: Text(
+          switch (currentRoute) {
+            '/home' => 'Home',
+            '/pantry' => 'Pantry',
+            '/chat' => 'Chat',
+            '/cart' => 'Cart',
+            _ => 'Elbi Eats',
+          },
+          style: const TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
+        ),
+        actions: [
+          Consumer<AuthProvider>(
+            builder: (context, authProvider, _) => IconButton(
+              icon: const Icon(Icons.logout, color: Colors.black),
+              onPressed: () async {
+                await authProvider.signOut();
+              },
+            ),
+          ),
+        ],
+      ),
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _navItems
+        selectedIndex: navItems
             .indexWhere((i) => i.route == currentRoute)
-            .clamp(0, _navItems.length - 1),
-        onDestinationSelected: (index) => _onTap(_navItems[index].route),
-        destinations: _navItems
+            .clamp(0, navItems.length - 1),
+        onDestinationSelected: (index) {
+          final route = navItems[index].route;
+          if (currentRoute == route) return;
+          route == '/home'
+              ? Navigator.pushReplacementNamed(context, route)
+              : Navigator.pushNamed(context, route);
+        },
+        destinations: navItems
             .map(
               (item) => NavigationDestination(
                 icon: Icon(item.icon),
@@ -49,6 +75,7 @@ class _MainScaffoldState extends State<MainScaffold> {
             )
             .toList(),
       ),
+      body: child,
     );
   }
 }

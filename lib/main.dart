@@ -1,12 +1,13 @@
 import 'package:elbi_eats/firebase_options.dart';
 import 'package:elbi_eats/providers/auth/auth_provider.dart';
+import 'package:elbi_eats/screens/profile/profile_page.dart';
 import 'package:elbi_eats/widgets/navbar.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'screens/auth/auth_wrapper.dart';
-import '../../screens/home/home_screen.dart';
+import 'screens/home/home_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,8 +31,7 @@ class MyApp extends StatelessWidget {
         ),
         initialRoute: '/',
         routes: {
-          '/home': (context) =>
-              const MainScaffold(currentRoute: '/home', child: HomeScreen()),
+          '/home': (context) => const MainScaffold(child: HomePage()),
 
           // --- NAV BAR ---
           // '/pantry' : (context) => const MainScaffold(currentRoute: '/pantry', child: PantryScreen()),
@@ -39,7 +39,7 @@ class MyApp extends StatelessWidget {
           // '/cart' : (context) => const MainScaffold(currentRoute: '/cart', child: CartScreen()),
 
           // --- DRAWER ---
-          // '/profile' : (context) => const ProfileScreen(),
+          '/profile': (context) => const ProfilePage(),
           // '/leaderboard' : (context) => const LeaderboardScreen(),
           // '/settings' : (context) => const SettingsScreen(),
         },
