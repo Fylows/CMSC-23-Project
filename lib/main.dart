@@ -1,5 +1,6 @@
 import 'package:elbi_eats/firebase_options.dart';
 import 'package:elbi_eats/providers/auth/auth_provider.dart';
+import 'package:elbi_eats/widgets/navbar.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -29,11 +30,13 @@ class MyApp extends StatelessWidget {
         ),
         initialRoute: '/',
         routes: {
-          '/home': (context) => const HomeScreen(),
+          '/home': (context) =>
+              const MainScaffold(currentRoute: '/home', child: HomeScreen()),
+
           // --- NAV BAR ---
-          // '/pantry' : (context) => const PantryScreen(),
-          // '/chat' : (context) => const ChatScreen(),
-          // '/cart' : (context) => const CartScreen(),
+          // '/pantry' : (context) => const MainScaffold(currentRoute: '/pantry', child: PantryScreen()),
+          // '/chat' : (context) => const MainScaffold(currentRoute: '/chat', child: ChatScreen()),
+          // '/cart' : (context) => const MainScaffold(currentRoute: '/cart', child: CartScreen()),
 
           // --- DRAWER ---
           // '/profile' : (context) => const ProfileScreen(),

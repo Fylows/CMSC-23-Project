@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:elbi_eats/providers/auth/auth_provider.dart';
+import '../../widgets/drawer.dart';
+import '../auth/auth_wrapper.dart';
 
 // TODO: create homescreen
 // this is just a placeholder home screen for testing
@@ -17,11 +19,16 @@ class HomeScreen extends StatelessWidget {
           IconButton(
             onPressed: () {
               context.read<AuthProvider>().signOut();
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const AuthWrapper()),
+              );
             },
             icon: const Icon(Icons.logout),
           ),
         ],
       ),
+      drawer: MyDrawer(),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -37,6 +44,10 @@ class HomeScreen extends StatelessWidget {
             ElevatedButton(
               onPressed: () {
                 context.read<AuthProvider>().signOut();
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AuthWrapper()),
+                );
               },
               child: const Text('Sign Out'),
             ),

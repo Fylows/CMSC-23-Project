@@ -26,7 +26,12 @@ class _AuthWrapperState extends State<AuthWrapper> {
           builder: (context, snapshot) {
             // check if user is authenticated
             if (snapshot.hasData && snapshot.data != null) {
-              return const HomeScreen();
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                Navigator.pushReplacementNamed(context, '/home');
+              });
+              return const Scaffold(
+                backgroundColor: Colors.white,
+              ); // return empty scaffold while navigating to home screen
             } else {
               return showSignUp
                   ? SignUpPage(
