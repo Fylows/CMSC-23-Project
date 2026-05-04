@@ -11,8 +11,9 @@ import '../../providers/auth/auth_provider.dart';
 
 class SignUpPage extends StatefulWidget {
   final VoidCallback? onSignInTapped;
+  final VoidCallback? onProfileSetupNeeded;
 
-  const SignUpPage({this.onSignInTapped, super.key});
+  const SignUpPage({this.onSignInTapped, this.onProfileSetupNeeded, super.key});
 
   @override
   State<SignUpPage> createState() => _SignUpPageState();
@@ -172,6 +173,9 @@ class _SignUpPageState extends State<SignUpPage> {
     if (!validateInputs()) {
       return;
     }
+
+    // added profile-setup screen here
+    widget.onProfileSetupNeeded?.call();
 
     await authProvider.signUp(
       email: emailController.text.trim(),

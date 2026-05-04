@@ -1,3 +1,4 @@
+import 'package:elbi_eats/screens/auth/profile_setup_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:elbi_eats/providers/auth/auth_provider.dart';
@@ -16,6 +17,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
   //track which auth screen to show (signin or signup)
   bool showSignUp = false;
   bool showForgotPassword = false;
+  bool showProfileSetup = false;
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +29,27 @@ class _AuthWrapperState extends State<AuthWrapper> {
           builder: (context, snapshot) {
             // check if user is authenticated
             if (snapshot.hasData && snapshot.data != null) {
-              return const HomeScreen();
+              // profile setup first if signup
+              if (showProfileSetup) {
+                return ProfileSetupPage(
+                  onComplete: () {
+                    setState(() {
+                      showProfileSetup = false;
+                    });
+                    // then navigate to home
+                    // NOTE: this sijust a placeholder
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      Navigator.pushReplacementNamed(context, '/home');
+                    });
+                  },
+                );
+              }
+
+              // go to home
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                Navigator.pushReplacementNamed(context, '/home');
+              });
+              return const Scaffold(backgroundColor: Colors.white);
             } else {
               return showForgotPassword
                 ? ForgotPasswordPage(
@@ -42,6 +64,11 @@ class _AuthWrapperState extends State<AuthWrapper> {
                     onSignInTapped: () {
                       setState(() {
                         showSignUp = false;
+                      });
+                    },
+                    onProfileSetupNeeded: () {
+                      setState(() {
+                        showProfileSetup = true;
                       });
                     },
                   )
