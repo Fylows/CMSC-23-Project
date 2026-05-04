@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:elbi_eats/providers/auth_provider.dart';
+import '../../providers/auth/auth_provider.dart';
 
 ///
 /// COLORS:
 /// Orange - Color(0xFFFA5800)
 /// Red - Color(0xFFCB2020)
-/// 
+///
 
 class SignInPage extends StatefulWidget {
   // navigation fallback (for signup and forgot password)
@@ -16,7 +16,7 @@ class SignInPage extends StatefulWidget {
   const SignInPage({
     this.onSignUpTapped,
     this.onForgotPasswordTapped,
-    super.key
+    super.key,
   });
 
   @override
@@ -60,7 +60,6 @@ class _SignInPageState extends State<SignInPage> {
       });
       isValid = false;
     }
-
     // invalid format
     /**
      * TODO:
@@ -74,7 +73,7 @@ class _SignInPageState extends State<SignInPage> {
       });
       isValid = false;
     }
-    
+
     // password validation
     // empty
     if (passwordController.text.isEmpty) {
@@ -84,7 +83,6 @@ class _SignInPageState extends State<SignInPage> {
 
       isValid = false;
     }
-
     // password too short
     // TODO: add validation later
     else if (passwordController.text.length < 8) {
@@ -93,7 +91,7 @@ class _SignInPageState extends State<SignInPage> {
       });
       isValid = false;
     }
-    
+
     return isValid;
   }
 
@@ -106,7 +104,7 @@ class _SignInPageState extends State<SignInPage> {
     }
 
     await authProvider.signIn(
-      email: emailController.text.trim(), 
+      email: emailController.text.trim(),
       password: passwordController.text,
     );
   }
@@ -130,10 +128,7 @@ class _SignInPageState extends State<SignInPage> {
                         gradient: LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
-                          colors: [
-                            Color(0xFFFA5800),
-                            Color(0xFFCB2020),
-                          ],
+                          colors: [Color(0xFFFA5800), Color(0xFFCB2020)],
                         ),
                       ),
                     ),
@@ -146,7 +141,9 @@ class _SignInPageState extends State<SignInPage> {
                         child: Icon(
                           Icons.restaurant,
                           size: 200,
-                          color: Colors.white.withValues(alpha: 0.2), // withOpacity is deprecated
+                          color: Colors.white.withValues(
+                            alpha: 0.2,
+                          ), // withOpacity is deprecated
                         ),
                       ),
                     ),
@@ -181,14 +178,13 @@ class _SignInPageState extends State<SignInPage> {
                           ),
                         ],
                       ),
-                    )
+                    ),
                   ],
                 ),
 
                 // ====================================
                 //        LOGIN tabs & form
                 // ====================================
-
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Column(
@@ -225,7 +221,7 @@ class _SignInPageState extends State<SignInPage> {
                                   ),
                                 ),
                               ),
-                            )
+                            ),
                           ),
                         ],
                       ),
@@ -265,7 +261,8 @@ class _SignInPageState extends State<SignInPage> {
                           TextField(
                             controller: emailController,
                             keyboardType: TextInputType.emailAddress,
-                            enabled: !authProvider.isLoading, // basically disable the field while loading
+                            enabled: !authProvider
+                                .isLoading, // basically disable the field while loading
                             decoration: InputDecoration(
                               hintText: 'elbieats@up.edu.ph',
                               errorText: emailError,
@@ -284,7 +281,7 @@ class _SignInPageState extends State<SignInPage> {
                               ),
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 16,
-                                vertical: 12
+                                vertical: 12,
                               ),
                             ),
                           ),
@@ -327,15 +324,15 @@ class _SignInPageState extends State<SignInPage> {
                               suffixIcon: IconButton(
                                 icon: Icon(
                                   passwordVisible
-                                    ? Icons.visibility
-                                    : Icons.visibility_off,
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
                                   color: Colors.grey.shade600,
                                 ),
                                 onPressed: () {
                                   setState(() {
                                     passwordVisible = !passwordVisible;
                                   });
-                                }, 
+                                },
                               ),
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 16,
@@ -354,25 +351,25 @@ class _SignInPageState extends State<SignInPage> {
                           Row(
                             children: [
                               Checkbox(
-                                value: rememberMe, 
+                                value: rememberMe,
                                 onChanged: authProvider.isLoading
-                                  ? null
-                                  : (value) {
-                                    setState(() {
-                                      rememberMe = value ?? false;
-                                    });
-                                  },
+                                    ? null
+                                    : (value) {
+                                        setState(() {
+                                          rememberMe = value ?? false;
+                                        });
+                                      },
                               ),
                               const Text('Remember me'),
                             ],
                           ),
                           TextButton(
                             onPressed: authProvider.isLoading
-                              ? null
-                              : widget.onForgotPasswordTapped,
+                                ? null
+                                : widget.onForgotPasswordTapped,
                             style: TextButton.styleFrom(
                               padding: EdgeInsets.zero,
-                            ), 
+                            ),
                             child: Text(
                               'Forgot Password ?',
                               style: TextStyle(
@@ -393,7 +390,7 @@ class _SignInPageState extends State<SignInPage> {
                           child: CircularProgressIndicator(),
                         )
                       else
-                      // show button
+                        // show button
                         ElevatedButton(
                           // disable button while loading
                           onPressed: () => handleSignIn(authProvider),
