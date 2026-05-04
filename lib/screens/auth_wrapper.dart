@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:elbi_eats/providers/auth_provider.dart';
 import 'sign_in_page.dart';
 import 'sign_up_page.dart';
+import 'forgot_password_page.dart';
 
 class AuthWrapper extends StatefulWidget {
   const AuthWrapper({super.key});
@@ -14,6 +15,7 @@ class AuthWrapper extends StatefulWidget {
 class _AuthWrapperState extends State<AuthWrapper> {
   //track which auth screen to show (signin or signup)
   bool showSignUp = false;
+  bool showForgotPassword = false;
 
   @override
   Widget build(BuildContext context) {
@@ -27,24 +29,37 @@ class _AuthWrapperState extends State<AuthWrapper> {
             if (snapshot.hasData && snapshot.data != null) {
               return const HomeScreen();
             } else {
-              return showSignUp
-                ? SignUpPage(
+              return showForgotPassword
+                ? ForgotPasswordPage(
                   onSignInTapped: () {
                     setState(() {
-                      showSignUp = false;
+                      showForgotPassword = false;
                     });
                   },
                 )
-                : SignInPage(
-                  onSignUpTapped: () {
-                    setState(() {
-                      showSignUp = true;
-                    });
-                  },
-                  onForgotPasswordTapped: () {
-                    // TODO: navigate to forgot password screen
-                  },
-                );
+                : showSignUp
+                  ? SignUpPage(
+                    onSignInTapped: () {
+                      setState(() {
+                        showSignUp = false;
+                      });
+                    },
+                  )
+                  : SignInPage(
+                    onSignUpTapped: () {
+                      setState(() {
+                        showSignUp = true;
+                      });
+                    },
+                    onForgotPasswordTapped: () {
+                      // TODO: navigate to forgot password screen
+                      // UPDATE: already implemented; comment can be removed
+                      setState(() {
+                        showForgotPassword = true;
+                      });
+
+                    },
+                  );
             }
           },
         );
