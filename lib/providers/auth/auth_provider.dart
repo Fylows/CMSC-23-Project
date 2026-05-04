@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:elbi_eats/models/user_model.dart';
-import 'package:elbi_eats/services/auth_service.dart';
+import '../../models/user/user_model.dart';
+import '../../services/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 
 class AuthProvider extends ChangeNotifier {
@@ -19,7 +19,8 @@ class AuthProvider extends ChangeNotifier {
   // check if user is logged
   bool get isAuthenticated => user != null;
 
-  Stream<firebase_auth.User?> get authStateChanges => authService.authStateChanges;
+  Stream<firebase_auth.User?> get authStateChanges =>
+      authService.authStateChanges;
 
   AuthProvider() {
     authService.authStateChanges.listen(onAuthStateChanged);
@@ -28,10 +29,7 @@ class AuthProvider extends ChangeNotifier {
   void onAuthStateChanged(firebase_auth.User? firebaseUser) {
     if (firebaseUser != null) {
       // means user is logged in
-      user = User(
-        uid: firebaseUser.uid,
-        email: firebaseUser.email ?? '',
-      );
+      user = User(uid: firebaseUser.uid, email: firebaseUser.email ?? '');
     } else {
       user = null;
     }
@@ -40,17 +38,14 @@ class AuthProvider extends ChangeNotifier {
   }
 
   // signup
-  Future<void> signUp({
-    required String email,
-    required String password
-  }) async {
+  Future<void> signUp({required String email, required String password}) async {
     setLoading(true);
     clearError();
 
     try {
       final currentUser = await authService.signUp(
-        email: email, 
-        password: password
+        email: email,
+        password: password,
       );
 
       user = currentUser;
@@ -64,17 +59,14 @@ class AuthProvider extends ChangeNotifier {
   }
 
   // sign in
-  Future<void> signIn({
-    required String email,
-    required String password
-  }) async {
+  Future<void> signIn({required String email, required String password}) async {
     setLoading(true);
     clearError();
 
     try {
       final currentUser = await authService.signIn(
-        email: email, 
-        password: password
+        email: email,
+        password: password,
       );
 
       user = currentUser;
@@ -104,7 +96,7 @@ class AuthProvider extends ChangeNotifier {
 
   // reset password
   // this will send a password reset email to the connected email
-  Future<void> resetPassword({ required String email }) async {
+  Future<void> resetPassword({required String email}) async {
     setLoading(true);
     clearError();
 
@@ -119,7 +111,7 @@ class AuthProvider extends ChangeNotifier {
       setLoading(false);
     }
   }
-  
+
   // ==== HELPER METHODS ====
   void setLoading(bool value) {
     isLoading = value;

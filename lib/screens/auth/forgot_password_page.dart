@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:elbi_eats/providers/auth_provider.dart';
+import 'package:elbi_eats/providers/auth/auth_provider.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
   final VoidCallback? onSignInTapped;

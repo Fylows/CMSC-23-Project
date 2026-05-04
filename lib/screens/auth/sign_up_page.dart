@@ -1,21 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import 'package:elbi_eats/providers/auth_provider.dart';
+import '../../providers/auth/auth_provider.dart';
 
 ///
 /// COLORS:
 /// Orange - Color(0xFFFA5800)
 /// Red - Color(0xFFCB2020)
-/// 
+///
 
 class SignUpPage extends StatefulWidget {
   final VoidCallback? onSignInTapped;
 
-  const SignUpPage({
-    this.onSignInTapped,
-    super.key,
-  });
+  const SignUpPage({this.onSignInTapped, super.key});
 
   @override
   State<SignUpPage> createState() => _SignUpPageState();
@@ -58,17 +55,15 @@ class _SignUpPageState extends State<SignUpPage> {
   Future<void> selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: selectedDate ?? DateTime(2000), 
-      firstDate: DateTime(1950), 
+      initialDate: selectedDate ?? DateTime(2000),
+      firstDate: DateTime(1950),
       lastDate: DateTime.now(),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: Color(0xFFFA5800),
-            )
-          ), 
-          child: child! // nothing lol
+            colorScheme: ColorScheme.light(primary: Color(0xFFFA5800)),
+          ),
+          child: child!, // nothing lol
         );
       },
     );
@@ -117,15 +112,15 @@ class _SignUpPageState extends State<SignUpPage> {
       setState(() {
         lastNameError = 'Last name must be at least 2 characters';
       });
-      isValid = false;      
+      isValid = false;
     }
 
     // email
     // TODO: create proper validation for email
-    if(emailController.text.isEmpty) {
+    if (emailController.text.isEmpty) {
       setState(() {
         emailError = 'Email is required';
-      }); 
+      });
       isValid = false;
     } else if (!emailController.text.contains('@')) {
       setState(() {
@@ -179,7 +174,7 @@ class _SignUpPageState extends State<SignUpPage> {
     }
 
     await authProvider.signUp(
-      email: emailController.text.trim(), 
+      email: emailController.text.trim(),
       password: passwordController.text,
     );
 
@@ -190,7 +185,7 @@ class _SignUpPageState extends State<SignUpPage> {
   @override
   Widget build(BuildContext context) {
     return Consumer<AuthProvider>(
-      builder:(context, authProvider, child) {
+      builder: (context, authProvider, child) {
         return Scaffold(
           body: SingleChildScrollView(
             child: Column(
@@ -206,10 +201,7 @@ class _SignUpPageState extends State<SignUpPage> {
                         gradient: LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
-                          colors: [
-                            Color(0xFFFA5800),
-                            Color(0xFFCB2020),
-                          ],
+                          colors: [Color(0xFFFA5800), Color(0xFFCB2020)],
                         ),
                       ),
                     ),
@@ -222,7 +214,9 @@ class _SignUpPageState extends State<SignUpPage> {
                         child: Icon(
                           Icons.restaurant,
                           size: 200,
-                          color: Colors.white.withValues(alpha: 0.2), // withOpacity is deprecated
+                          color: Colors.white.withValues(
+                            alpha: 0.2,
+                          ), // withOpacity is deprecated
                         ),
                       ),
                     ),
@@ -257,7 +251,7 @@ class _SignUpPageState extends State<SignUpPage> {
                           ),
                         ],
                       ),
-                    )
+                    ),
                   ],
                 ),
 
@@ -429,7 +423,8 @@ class _SignUpPageState extends State<SignUpPage> {
                           TextField(
                             controller: emailController,
                             keyboardType: TextInputType.emailAddress,
-                            enabled: !authProvider.isLoading, // basically disable the field while loading
+                            enabled: !authProvider
+                                .isLoading, // basically disable the field while loading
                             decoration: InputDecoration(
                               hintText: 'elbieats@up.edu.ph',
                               errorText: emailError,
@@ -448,7 +443,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               ),
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 16,
-                                vertical: 12
+                                vertical: 12,
                               ),
                             ),
                           ),
@@ -469,9 +464,12 @@ class _SignUpPageState extends State<SignUpPage> {
                           ),
                           const SizedBox(height: 8),
                           GestureDetector(
-                            onTap: authProvider.isLoading ? null : () => selectDate(context),
+                            onTap: authProvider.isLoading
+                                ? null
+                                : () => selectDate(context),
                             child: TextField(
-                              enabled: false, // made this false since its read-only (user should not be able to type here so do not enable)
+                              enabled:
+                                  false, // made this false since its read-only (user should not be able to type here so do not enable)
                               decoration: InputDecoration(
                                 hintText: 'DD/MM/YYYY',
                                 errorText: dateError,
@@ -492,11 +490,13 @@ class _SignUpPageState extends State<SignUpPage> {
                               ),
                               controller: TextEditingController(
                                 text: selectedDate != null
-                                  // a custom date format
-                                  // we used the 'intl' package for this
-                                  // source/api docs: https://pub.dev/packages/intl
-                                  ? DateFormat('dd/MM/yyyy').format(selectedDate!)
-                                  : '',
+                                    // a custom date format
+                                    // we used the 'intl' package for this
+                                    // source/api docs: https://pub.dev/packages/intl
+                                    ? DateFormat(
+                                        'dd/MM/yyyy',
+                                      ).format(selectedDate!)
+                                    : '',
                               ),
                             ),
                           ),
@@ -539,15 +539,15 @@ class _SignUpPageState extends State<SignUpPage> {
                               suffixIcon: IconButton(
                                 icon: Icon(
                                   passwordVisible
-                                    ? Icons.visibility
-                                    : Icons.visibility_off,
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
                                   color: Colors.grey.shade600,
                                 ),
                                 onPressed: () {
                                   setState(() {
                                     passwordVisible = !passwordVisible;
                                   });
-                                }, 
+                                },
                               ),
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 16,
@@ -594,15 +594,16 @@ class _SignUpPageState extends State<SignUpPage> {
                               suffixIcon: IconButton(
                                 icon: Icon(
                                   confirmPasswordVisible
-                                    ? Icons.visibility
-                                    : Icons.visibility_off,
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
                                   color: Colors.grey.shade600,
                                 ),
                                 onPressed: () {
                                   setState(() {
-                                    confirmPasswordVisible = !confirmPasswordVisible;
+                                    confirmPasswordVisible =
+                                        !confirmPasswordVisible;
                                   });
-                                }, 
+                                },
                               ),
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 16,
@@ -622,7 +623,7 @@ class _SignUpPageState extends State<SignUpPage> {
                           child: CircularProgressIndicator(),
                         )
                       else
-                      // show button
+                        // show button
                         ElevatedButton(
                           // disable button while loading
                           onPressed: () => handleSignUp(authProvider),
@@ -662,7 +663,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       const SizedBox(height: 32),
                     ],
                   ),
-                )
+                ),
               ],
             ),
           ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:elbi_eats/providers/auth_provider.dart';
+import 'package:elbi_eats/providers/auth/auth_provider.dart';
 import 'sign_in_page.dart';
 import 'sign_up_page.dart';
 import 'forgot_password_page.dart';

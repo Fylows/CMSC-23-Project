@@ -1,5 +1,6 @@
-import 'package:firebase_auth/firebase_auth.dart' as firebase_auth; // added an alias since 'User' in firebase_auth is conflicting with our 'User' model
-import 'package:elbi_eats/models/user_model.dart';
+import 'package:firebase_auth/firebase_auth.dart'
+    as firebase_auth; // added an alias since 'User' in firebase_auth is conflicting with our 'User' model
+import '../../models/user/user_model.dart';
 
 class AuthService {
   static final auth = firebase_auth.FirebaseAuth.instance;
@@ -15,12 +16,12 @@ class AuthService {
   }
 
   // signup
-  Future<User> signUp({ required String email, required String password}) async {
+  Future<User> signUp({required String email, required String password}) async {
     try {
       // create account on firebase
       final userCredential = await auth.createUserWithEmailAndPassword(
-        email: email, 
-        password: password
+        email: email,
+        password: password,
       );
 
       final firebaseUser = userCredential.user;
@@ -30,24 +31,18 @@ class AuthService {
       }
 
       // convert to user model
-      return User(
-        uid: firebaseUser.uid,
-        email: firebaseUser.email ?? '',
-      );
+      return User(uid: firebaseUser.uid, email: firebaseUser.email ?? '');
     } on firebase_auth.FirebaseAuthException catch (e) {
       throw handleAuthException(e); // check bottom for what this fn is
     }
   }
 
   // sign-in
-  Future<User> signIn({
-    required String email,
-    required String password
-  }) async {
+  Future<User> signIn({required String email, required String password}) async {
     try {
       final userCredential = await auth.signInWithEmailAndPassword(
-        email: email, 
-        password: password
+        email: email,
+        password: password,
       );
 
       final firebaseUser = userCredential.user;
@@ -56,10 +51,7 @@ class AuthService {
         throw Exception('Failed to sign in');
       }
 
-      return User(
-        uid: firebaseUser.uid,
-        email: firebaseUser.email ?? '',
-      );
+      return User(uid: firebaseUser.uid, email: firebaseUser.email ?? '');
     } on firebase_auth.FirebaseAuthException catch (e) {
       throw handleAuthException(e);
     }
