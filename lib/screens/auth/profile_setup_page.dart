@@ -15,9 +15,9 @@ class ProfileSetupPage extends StatefulWidget {
 class _ProfileSetupPageState extends State<ProfileSetupPage> {
   // all available tags (subject to change)
   final List<String> allTags = [
-    'dinuguan',
+    'vegan',
     'cafes',
-    'bibingka',
+    'gluten-free',
     'trending',
     'sisig',
     'buko pie',
@@ -25,12 +25,12 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
     'healthy',
     'taho',
     'korean',
-    'sinigang',
+    'halal',
     'lumpia',
     'kakanin',
-    'date places',
+    'home-cooked',
     'halo-halo',
-    'kwek-kwek',
+    'raw ingredients',
     'sulit-meals',
     'pancit',
   ];
