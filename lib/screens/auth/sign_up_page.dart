@@ -11,7 +11,7 @@ import '../../providers/auth/auth_provider.dart';
 
 class SignUpPage extends StatefulWidget {
   final VoidCallback? onSignInTapped;
-  final VoidCallback? onProfileSetupNeeded;
+  final Function(String firstName, String lastName, DateTime dateOfBirth)? onProfileSetupNeeded;
 
   const SignUpPage({this.onSignInTapped, this.onProfileSetupNeeded, super.key});
 
@@ -174,15 +174,20 @@ class _SignUpPageState extends State<SignUpPage> {
       return;
     }
 
-    // added profile-setup screen here
-    widget.onProfileSetupNeeded?.call();
-
     await authProvider.signUp(
       email: emailController.text.trim(),
       password: passwordController.text,
     );
 
-    // TODO: save this data to firestore
+    // todo completed 01:29 17/05/2026
+    // save user signup data to firestore
+    if (authProvider.isAuthenticated && mounted) {
+      widget.onProfileSetupNeeded?.call(
+        firstNameController.text.trim(),
+        lastNameController.text.trim(),
+        selectedDate!,
+      );
+    }
     // auth is handled rn but no profile saving yet
   }
 

@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth/auth_provider.dart';
 
 class ProfileSetupPage extends StatefulWidget {
+  final String firstName;
+  final String lastName;
+  final DateTime dateOfBirth;
   final VoidCallback? onComplete;
 
   const ProfileSetupPage({
+    required this.firstName,
+    required this.lastName,
+    required this.dateOfBirth,
     this.onComplete,
     super.key
   });
@@ -49,11 +57,33 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
     });
   }
 
-  /// handle "lets eat" button
+  /// handle "lets eat" button - save profile to firestore
   Future<void> handleComplete() async {
-    // TODO: save selected tags to firestore user profile
-    // i'll finish implementing this in milestone 2 after we set up firestore
-    // for now just proceed to home 
+    // save selected tags to firestore user profile
+    // todo completed: 01:33 17/05/2026
+    final authPovider = context.read<AuthProvider>();
+
+    try {
+      // save user profile with collected data
+      await authPovider.saveUserProfile(
+        firstName: widget.firstName, 
+        lastName: widget.lastName, 
+        dateOfBirth: widget.dateOfBirth, 
+        selectedTags: selectedTags.toList(),
+      );
+
+      // navigate to home after successful save
+      if (mounted) {
+        widget.onComplete?.call();
+      }
+    } catch (e) {
+      // error if save fail
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error saving profile: $e')),
+        );
+      }
+    }
     widget.onComplete?.call();
   }
 

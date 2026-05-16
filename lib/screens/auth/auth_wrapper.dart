@@ -19,6 +19,10 @@ class _AuthWrapperState extends State<AuthWrapper> {
   bool showForgotPassword = false;
   bool showProfileSetup = false;
 
+  String? _firstName;
+  String? _lastName;
+  DateTime? _dateOfBirth;
+
   @override
   Widget build(BuildContext context) {
     return Consumer<AuthProvider>(
@@ -32,15 +36,15 @@ class _AuthWrapperState extends State<AuthWrapper> {
               // profile setup first if signup
               if (showProfileSetup) {
                 return ProfileSetupPage(
+                  firstName: _firstName ?? '',
+                  lastName: _lastName ?? '',
+                  dateOfBirth: _dateOfBirth ?? DateTime.now(),
                   onComplete: () {
                     setState(() {
                       showProfileSetup = false;
                     });
                     // then navigate to home
-                    // NOTE: this sijust a placeholder
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      Navigator.pushReplacementNamed(context, '/home');
-                    });
+                    Navigator.pushReplacementNamed(context, '/home');
                   },
                 );
               }
@@ -66,9 +70,12 @@ class _AuthWrapperState extends State<AuthWrapper> {
                         showSignUp = false;
                       });
                     },
-                    onProfileSetupNeeded: () {
+                    onProfileSetupNeeded: (firstname, lastName, dateOfBirth) {
                       setState(() {
                         showProfileSetup = true;
+                        _firstName = firstname;
+                        _lastName = lastName;
+                        _dateOfBirth = dateOfBirth;
                       });
                     },
                   )
@@ -79,7 +86,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
                       });
                     },
                     onForgotPasswordTapped: () {
-                      // TODO: navigate to forgot password screen
+                      // todo: navigate to forgot password screen
                       // UPDATE: already implemented; comment can be removed
                       setState(() {
                         showForgotPassword = true;
