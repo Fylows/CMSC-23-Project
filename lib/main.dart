@@ -1,6 +1,8 @@
 import 'package:elbi_eats/firebase_options.dart';
 import 'package:elbi_eats/providers/auth/auth_provider.dart';
 import 'package:elbi_eats/screens/profile/profile_page.dart';
+import 'package:elbi_eats/screens/profile/order_transactions_page.dart';
+import 'package:elbi_eats/screens/profile/posted_items_page.dart';
 import 'package:elbi_eats/widgets/navbar.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -40,6 +42,8 @@ class MyApp extends StatelessWidget {
 
           // --- DRAWER ---
           '/profile': (context) => const ProfilePage(),
+          '/order-transactions': (context) => const OrderTransactionsPage(),
+          '/posted-items': (context) => const PostedItemsPage(),
           // '/leaderboard' : (context) => const LeaderboardScreen(),
           // '/settings' : (context) => const SettingsScreen(),
         },

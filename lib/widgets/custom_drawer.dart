@@ -91,6 +91,8 @@ class CustomDrawer extends StatelessWidget {
                             // Use authProvider.signOut() instead of AuthProvider.signOut()
                             await authProvider.signOut();
 
+                            if (!context.mounted) return;
+
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(

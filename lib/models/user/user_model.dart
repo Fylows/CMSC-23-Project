@@ -4,7 +4,9 @@ class User {
   final bool isVerified;
   final String? displayName; // Used as Real Name
   final String? username;
+  final String? photoUrl;
   final int contributorScore; // Defaults to 0 or 67
+  final bool hideTransactions;
 
   User({
     required this.uid,
@@ -12,7 +14,9 @@ class User {
     this.isVerified = false,
     this.displayName,
     this.username,
+    this.photoUrl,
     this.contributorScore = 0,
+    this.hideTransactions = false,
   });
 
   // convert user to map so we can save to firestore
@@ -23,7 +27,9 @@ class User {
       'isVerified': isVerified,
       'displayName': displayName,
       'username': username,
+      'photoUrl': photoUrl,
       'contributorScore': contributorScore,
+      'hideTransactions': hideTransactions,
       'createdAt': DateTime.now(),
     };
   }
@@ -36,7 +42,9 @@ class User {
       isVerified: map['isVerified'] ?? false,
       displayName: map['displayName'],
       username: map['username'],
+      photoUrl: map['photoUrl'],
       contributorScore: map['contributorScore'] ?? 0,
+      hideTransactions: map['hideTransactions'] ?? false,
     );
   }
 }
