@@ -193,6 +193,17 @@ class ItemDetailPage extends StatelessWidget {
                           : Colors.orange,
                       ),
                     ),
+                    child: Text(
+                      item.status.replaceFirst(
+                        item.status[0], item.status[0].toUpperCase()),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: item.status == 'available'
+                          ? Colors.green
+                          : Colors.orange,
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 32),
                 ],
