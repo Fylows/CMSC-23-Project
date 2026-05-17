@@ -158,25 +158,25 @@ class _LeaderboardSection extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              const LeaderboardBar(
+              LeaderboardBar(
                 imageUrl: 'https://i.pravatar.cc/150?img=47',
                 height: 80,
-                barColor: const Color(0xFFB0B0B0),
+                outlineColor: const Color(0xFFB0B0B0),
                 rank: 2,
               ),
               const SizedBox(width: 12),
-              const LeaderboardBar(
+              LeaderboardBar(
                 imageUrl: 'https://i.pravatar.cc/150?img=12',
                 height: 110,
-                barColor: const Color(0xFFE8C84A),
+                outlineColor: const Color(0xFFE8C84A),
                 rank: 1,
                 isCenter: true,
               ),
               const SizedBox(width: 12),
-              const LeaderboardBar(
+              LeaderboardBar(
                 imageUrl: 'https://i.pravatar.cc/150?img=32',
                 height: 65,
-                barColor: const Color(0xFF6BC76B),
+                outlineColor: const Color(0xFF6BC76B),
                 rank: 3,
               ),
             ],

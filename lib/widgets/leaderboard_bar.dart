@@ -3,30 +3,40 @@ import 'package:flutter/material.dart';
 class LeaderboardBar extends StatelessWidget {
   final String imageUrl;
   final double height;
-  final Color barColor;
+  final Color outlineColor; // replaces barColor
   final int rank;
   final bool isCenter;
 
   const LeaderboardBar({
+    super.key,
     required this.imageUrl,
     required this.height,
-    required this.barColor,
+    required this.outlineColor,
     required this.rank,
     this.isCenter = false,
   });
+
+  Color get _barColor => switch (rank) {
+    1 => const Color(0xFFE8C84A),
+    2 => const Color(0xFFB0B0B0),
+    3 => const Color(0xFF6BC76B),
+    _ => Colors.grey,
+  };
 
   @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        // Avatar
         Container(
           width: isCenter ? 56 : 48,
           height: isCenter ? 56 : 48,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: Colors.white, width: 2),
+            border: Border.all(
+              color: outlineColor,
+              width: 2,
+            ), // uses outlineColor
             image: DecorationImage(
               image: NetworkImage(imageUrl),
               fit: BoxFit.cover,
@@ -34,12 +44,11 @@ class LeaderboardBar extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 6),
-        // Bar
         Container(
           width: isCenter ? 70 : 58,
           height: height,
           decoration: BoxDecoration(
-            color: barColor,
+            color: _barColor, // hardcoded per rank
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(6),
               topRight: Radius.circular(6),

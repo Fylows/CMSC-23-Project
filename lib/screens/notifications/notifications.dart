@@ -7,8 +7,21 @@ class NotificationsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Notifications'),
-        backgroundColor: const Color(0xFFE05A00),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: const Text(
+          'Notifications',
+          style: TextStyle(
+            color: Color(0xFFCB2020),
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: true,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(color: Colors.grey[300], height: 1),
+        ),
       ),
       body: const Center(
         child: Text(
