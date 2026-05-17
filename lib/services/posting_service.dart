@@ -42,7 +42,7 @@ class PostingService {
   Stream<List<PostedItem>> getPostingByTags(List<String> tags)  {
     return firestore
       .collection('postings')
-      .where('status', isEqualTo: 'avalailble')
+      .where('status', isEqualTo: 'available')
       .where('selectedTags', arrayContainsAny: tags)
       .orderBy('createdAt', descending: true)
       .snapshots()
