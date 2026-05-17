@@ -248,6 +248,7 @@ class ItemDetailPage extends StatelessWidget {
                     ),
                   );
                 }
+                return;
               }
 
               try {
