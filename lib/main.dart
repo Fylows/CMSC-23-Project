@@ -10,6 +10,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'screens/auth/auth_wrapper.dart';
 import 'screens/home/home_page.dart';
+import 'screens/notifications/notifications.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,7 +35,7 @@ class MyApp extends StatelessWidget {
         initialRoute: '/',
         routes: {
           '/home': (context) => const MainScaffold(child: HomePage()),
-
+          '/notifications': (context) => const NotificationsPage(),
           // --- NAV BAR ---
           // '/pantry' : (context) => const MainScaffold(currentRoute: '/pantry', child: PantryScreen()),
           // '/chat' : (context) => const MainScaffold(currentRoute: '/chat', child: ChatScreen()),

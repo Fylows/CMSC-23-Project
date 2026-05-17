@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:elbi_eats/providers/auth/auth_provider.dart';
 import 'custom_drawer.dart';
+import 'package:elbi_eats/widgets/searchbar.dart';
 
 class MainScaffold extends StatelessWidget {
   final Widget child;
@@ -30,26 +31,19 @@ class MainScaffold extends StatelessWidget {
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
-        title: Text(
-          switch (currentRoute) {
-            '/home' => 'Home',
-            '/pantry' => 'Pantry',
-            '/chat' => 'Chat',
-            '/cart' => 'Cart',
-            _ => 'Elbi Eats',
-          },
-          style: const TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
-        ),
+        title: const AppSearchBar(),
         actions: [
           Consumer<AuthProvider>(
             builder: (context, authProvider, _) => IconButton(
-              icon: const Icon(Icons.logout, color: Colors.black),
+              icon: const Icon(
+                Icons.notifications_outlined,
+                color: Colors.black,
+              ),
               onPressed: () async {
-                await authProvider.signOut();
+                Navigator.of(
+                  context,
+                  rootNavigator: true,
+                ).pushNamed('/notifications');
               },
             ),
           ),
