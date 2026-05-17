@@ -23,6 +23,11 @@ class PostingProvider extends ChangeNotifier {
   // streams
   late Stream<List<PostedItem>> availablePostingsStream;
 
+  /// get ALL postings stream
+  Stream<List<PostedItem>> getAllPostingsStream() {
+    return postingService.getAllPostings();
+  }
+
   /// get available postings stream
   Stream<List<PostedItem>> getAvailablePostingsStream() {
     return postingService.getAvailablePostings();

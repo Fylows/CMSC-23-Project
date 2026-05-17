@@ -15,7 +15,7 @@ class PantryPage extends StatefulWidget {
 
 class _PantryPageState extends State<PantryPage> {
   final searchController = TextEditingController();
-  String selectedFilter = 'available'; // available, expired, claimed, bids, completed
+  String selectedFilter = 'available'; // available, expired, claimed, bids, completed, reserved
   bool showOnlyMyItems = false;
 
   @override
@@ -90,6 +90,8 @@ class _PantryPageState extends State<PantryPage> {
                       children: [
                         _buildFilterChip('available', 'All'),
                         const SizedBox(width: 8),
+                        _buildFilterChip('reserved', 'Reserved'),
+                        const SizedBox(width: 8),
                         _buildFilterChip('expired', 'Expired'),
                         const SizedBox(width: 8),
                         _buildFilterChip('claimed', 'Claim'),
@@ -126,7 +128,7 @@ class _PantryPageState extends State<PantryPage> {
             // ======== FEED =============
             Expanded(
               child: StreamBuilder<List<PostedItem>>(
-                stream: postingProvider.getAvailablePostingsStream(), 
+                stream: postingProvider.getAllPostingsStream(), 
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
@@ -154,7 +156,9 @@ class _PantryPageState extends State<PantryPage> {
                   List<PostedItem> items = snapshot.data!;
 
                   // apply filter based on selected tab
-                  if (selectedFilter == 'expired') {
+                  if (selectedFilter == 'reserved') {
+                    items = items.where((item) => item.status == 'reserved').toList();
+                  } else if (selectedFilter == 'expired') {
                     items = items
                       .where((item) => item.expirationDate.isBefore(DateTime.now()))
                       .toList();

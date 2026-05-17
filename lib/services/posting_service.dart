@@ -10,6 +10,19 @@ class PostingService {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final FirebaseStorage storage = FirebaseStorage.instance;
 
+  /// get all postings (no status filter)
+  Stream<List<PostedItem>> getAllPostings() {
+    return firestore
+      .collection('postings')
+      .orderBy('createdAt', descending: true)
+      .snapshots()
+      .map((snapshots) {
+        return snapshots.docs
+          .map((doc) => PostedItem.fromMap(doc.data(), doc.id))
+          .toList();
+      });
+  }
+  
   /// get all available postings
   Stream<List<PostedItem>> getAvailablePostings() {
     return firestore
