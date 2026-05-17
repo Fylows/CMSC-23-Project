@@ -284,65 +284,204 @@ class ItemDetailPage extends StatelessWidget {
   Widget _buildRemoveButton(BuildContext context, PostingProvider postingProvider) {
     return Padding(
       padding: const EdgeInsets.all(16),
-      child: ElevatedButton(
-        onPressed: () async {
-          final confirm = await showDialog<bool>(
-            context: context, 
-            builder: (context) => AlertDialog(
-              title: const Text('Remove Item?'),
-              content: const Text(
-                'Are you sure you want to remove this item from the pantry?',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, false), 
-                  child: const Text('Cancel')
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pop(context, true), 
-                  child: const Text('Remove', style: TextStyle(color: Colors.red),)
-                ),
-              ],
-            ),
-          );
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // show pending claims if item is still available
+          if (item.status == 'available')
+            StreamBuilder<List<Claim>>(
+              stream: postingProvider.getClaimsForPostingStream(item.id), 
+              builder: (context, claimsSnapshot) {
+                if (!claimsSnapshot.hasData || claimsSnapshot.data!.isEmpty) {
+                  return const SizedBox.shrink();
+                }
 
-          if (confirm == true && context.mounted) {
-            try {
-              await postingProvider.deletePosting(item.id);
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Item removed')),
+                final pendingClaims = claimsSnapshot.data!
+                  .where((c) => c.status == 'pending')
+                  .toList();
+
+                if (pendingClaims.isEmpty) {
+                  return const SizedBox.shrink();
+                }
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Claims (${pendingClaims.length})',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: pendingClaims.length,
+                      itemBuilder: (context, index) {
+                        final claim = pendingClaims[index];
+                        return _buildClaimCard(context, postingProvider, claim);
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                 );
-                Navigator.pop(context);
               }
-            } catch (e) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Error: $e')),
+            ),
+
+          // remove button
+          ElevatedButton(
+            onPressed: () async {
+              final confirm = await showDialog<bool>(
+                context: context, 
+                builder: (context) => AlertDialog(
+                  title: const Text('Remove Item?'),
+                  content: const Text(
+                    'Are you sure you want to remove this item from the pantry?',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false), 
+                      child: const Text('Cancel')
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, true), 
+                      child: const Text('Remove', style: TextStyle(color: Colors.red),)
+                    ),
+                  ],
+                ),
               );
-            }
-          }
-        }, 
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.red,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Icon(Icons.delete, color: Colors.white),
-            SizedBox(width: 8),
-            Text(
-              'Remove Item',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+
+              if (confirm == true && context.mounted) {
+                try {
+                  await postingProvider.deletePosting(item.id);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Item removed')),
+                    );
+                    Navigator.pop(context);
+                  }
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error: $e')),
+                  );
+                }
+              }
+            }, 
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const [
+                Icon(Icons.delete, color: Colors.white),
+                SizedBox(width: 8),
+                Text(
+                  'Remove Item',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                )
+              ],
             )
-          ],
-        )
-      ),
+          ),
+        ],
+      )
     );
   }
+}
+
+// build individual claim cards with accept/reject buttons
+Widget _buildClaimCard(
+  BuildContext context,
+  PostingProvider postingProvider,
+  Claim claim,
+) {
+  return Container(
+    margin: const EdgeInsets.only(bottom: 12),
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      border: Border.all(color: Colors.grey.shade300),
+      borderRadius: BorderRadius.circular(8),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          claim.claimerName,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'claimed on ${DateFormat('MMM dd, yyyy').format(claim.claimedAt)}',
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.grey.shade600,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: () async {
+                  try {
+                    await postingProvider.acceptClaim(
+                      claim.id, 
+                      claim.postingId, 
+                      claim.claimerId,
+                    );
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Claim accepted!')),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error: $e')),
+                      );
+                    }
+                  }
+                },
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Color(0xFFFA5800)),
+                ),
+                child: const Text(
+                  'Accept',
+                  style: TextStyle(color: Color(0xFFFA5800)),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: OutlinedButton(
+                onPressed: () {
+                  // TODO: implement reject funcitonality later
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Reject coming soon')),
+                  );
+                }, 
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: Colors.grey.shade300),
+                ),
+                child: Text(
+                  'Reject',
+                  style: TextStyle(color: Colors.grey.shade600),
+                )
+              ),
+            ),
+          ],
+        )
+      ],
+    ),
+  );
 }

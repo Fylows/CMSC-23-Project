@@ -54,9 +54,20 @@ class PostingProvider extends ChangeNotifier {
     clearError();
 
     try {
+      // fetch full name from firestore users collection
+      final userDoc = await postingService.firestore
+        .collection('users')
+        .doc(currentUser.uid)
+        .get();
+
+      
+      final firstName = userDoc.data()?['firstname'] ?? 'Anonymous';
+      final lastName = userDoc.data()?['lastName'] ?? '';
+      final fullName = '$firstName $lastName'.trim();
+
       final posting = await postingService.createPosting(
         posterId: currentUser.uid, 
-        posterName: currentUser.displayName ?? '${currentUser.firstName} ${currentUser.lastName}', 
+        posterName: fullName, 
         posterVerified: currentUser.isVerified, 
         itemName: itemName, 
         description: description, 
