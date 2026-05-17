@@ -27,7 +27,7 @@ class RankBadge extends StatelessWidget {
   Color get _color => switch (rank) {
     1 => const Color(0xFFE8C84A),
     2 => Colors.grey.shade600,
-    3 => const Color(0xFF8B6914),
+    3 => const Color(0xFF6BC76B),
     _ => Colors.grey,
   };
 
@@ -151,7 +151,7 @@ class TopThreePodium extends StatelessWidget {
               TopAvatar(
                 entry: third,
                 size: 76,
-                outlineColor: const Color(0xFF8B6914),
+                outlineColor: const Color(0xFF6BC76B),
               ),
             ],
           ),
