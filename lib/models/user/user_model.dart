@@ -59,7 +59,7 @@ class User {
       email: map['email'] ?? '',
       displayName: map['displayName'],
       username: map['username'],
-      firstName: map['firstName'],
+      firstName: map['firstname'],
       lastName: map['lastName'],
       dateOfBirth: map['dateOfBirth']?.toDate(),
       selectedTags: List<String>.from(map['selectedTags'] ?? []),
