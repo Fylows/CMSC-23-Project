@@ -38,7 +38,7 @@ class User {
       'email': email,
       'displayName': displayName,
       'username': username,
-      'firstname': firstName,
+      'firstName': firstName,
       'lastName': lastName,
       'dateOfBirth': dateOfBirth,
       'selectedTags': selectedTags ?? [],
