@@ -189,12 +189,31 @@ class PostingProvider extends ChangeNotifier {
     }
   }
 
+  /// reject a claim
+  Future<void> rejectClaim(String claimId) async {
+    try {
+      await postingService.rejectClaim(claimId);
+      notifyListeners();
+    } catch (e) {
+      errorMessage = e.toString();
+      notifyListeners();
+    }
+  }
+
   Stream<List<Claim>> getUserClaimsStream(String claimerId) {
     return postingService.getUserClaims(claimerId);
   }
 
   Stream<List<Claim>> getClaimsForPostingStream(String postingId) {
     return postingService.getClaimsForPosting(postingId);
+  }
+
+  Future<bool> userHasExistingClaim(String postingId, String claimerId) async {
+    try {
+      return await postingService.userHasExistingClaim(postingId, claimerId);
+    } catch (e) {
+      return false;
+    }
   }
 
   // ========== HELPER METHODS =======

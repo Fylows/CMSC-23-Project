@@ -237,6 +237,18 @@ class PostingService {
     }
   }
 
+  /// reject a claim
+  Future<void> rejectClaim(String claimId) async {
+    try {
+      await firestore.collection('claims').doc(claimId).update({
+        'status': 'rejected',
+        'resolvedAt': DateTime.now(),
+      });
+    } catch (e) {
+      throw Exception('Failed to reject claim: $e');
+    }
+  }
+
   /// complete a claim after QR handshake
   Future<void> completeClaim(String postingId, String claimId) async {
     try {
@@ -251,6 +263,22 @@ class PostingService {
       });
     } catch (e) {
       throw Exception('Failed to complete claim: $e');
+    }
+  }
+
+  /// check if user already has a pending/accepted claim for this posting
+  Future<bool> userHasExistingClaim(String postingId, String claimerId) async {
+    try {
+      final snapshot = await firestore
+        .collection('claims')
+        .where('postingId', isEqualTo: postingId)
+        .where('claimerId', isEqualTo: claimerId)
+        .where('status', whereIn: ['pending', 'accepted'])
+        .get();
+      
+      return snapshot.docs.isNotEmpty;
+    } catch (e) {
+      return false;
     }
   }
 

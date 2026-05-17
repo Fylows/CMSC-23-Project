@@ -228,9 +228,26 @@ class ItemDetailPage extends StatelessWidget {
           ? () async {
               if (authProvider.user == null) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Claim functionality coming soon!'))
+                  const SnackBar(content: Text('You must be logged in to claim items'))
                 );
                 return;
+              }
+
+              // check if user already has a pending/accepted claim
+              final hasExistingClaim = await postingProvider.userHasExistingClaim(
+                item.id, 
+                authProvider.user!.uid,
+              );
+
+              if (hasExistingClaim) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('You already claimed this item. Waiting for owner response.'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                }
               }
 
               try {
@@ -464,18 +481,30 @@ Widget _buildClaimCard(
             const SizedBox(width: 8),
             Expanded(
               child: OutlinedButton(
-                onPressed: () {
-                  // TODO: implement reject funcitonality later
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Reject coming soon')),
-                  );
+                // todo: implement reject functionality
+                // completed 01:10 18/05/2026
+                onPressed: () async {
+                  try {
+                    await postingProvider.rejectClaim(claim.id);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Claim rejected')),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error: $e')),
+                      );
+                    }
+                  }
                 }, 
                 style: OutlinedButton.styleFrom(
-                  side: BorderSide(color: Colors.grey.shade300),
+                  side: BorderSide(color: Colors.red),
                 ),
                 child: Text(
                   'Reject',
-                  style: TextStyle(color: Colors.grey.shade600),
+                  style: TextStyle(color: Colors.red),
                 )
               ),
             ),
