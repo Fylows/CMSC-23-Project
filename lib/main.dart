@@ -15,6 +15,7 @@ import 'screens/home/home_page.dart';
 import 'screens/notifications/notifications.dart';
 import 'screens/leaderboard/leaderboard.dart';
 import 'package:elbi_eats/providers/leaderboard/leaderboard_provider.dart';
+import 'package:elbi_eats/screens/messaging/chatlist_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,7 +49,10 @@ class MyApp extends StatelessWidget {
           '/notifications': (context) => const NotificationsPage(),
           // --- NAV BAR ---
           // '/pantry' : (context) => const MainScaffold(currentRoute: '/pantry', child: PantryScreen()),
-          // '/chat' : (context) => const MainScaffold(currentRoute: '/chat', child: ChatScreen()),
+          '/chat': (context) => const MainScaffold(
+            child:
+                ChatListPage(), // ← currentUserId will be set inside ChatListPage using AuthProvider
+          ),
           // '/cart' : (context) => const MainScaffold(currentRoute: '/cart', child: CartScreen()),
 
           // --- DRAWER ---
