@@ -1,22 +1,5 @@
 import 'package:flutter/material.dart';
-
-// ─── Data Model ───────────────────────────────────────────────────────────────
-class LeaderboardEntry {
-  final int rank;
-  final String username;
-  final int contributions;
-  final String? imageUrl;
-  final bool isCurrentUser;
-
-  const LeaderboardEntry({
-    required this.rank,
-    required this.username,
-    required this.contributions,
-    this.imageUrl,
-    this.isCurrentUser = false,
-  });
-}
-
+import 'package:elbi_eats/models/leaderboard_entry_model.dart';
 // ─── Rank Badge ───────────────────────────────────────────────────────────────
 
 class RankBadge extends StatelessWidget {
