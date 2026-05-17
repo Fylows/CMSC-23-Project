@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/user/user_model.dart';
 import '../../services/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 
 class AuthProvider extends ChangeNotifier {
   final AuthService authService = AuthService();
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
   User? user;
 
@@ -107,6 +109,57 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       setError(e.toString());
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  /// save user profile to firestore
+  /// called after signup, during profile setup
+  Future<void> saveUserProfile({
+    required String firstName,
+    required String lastName,
+    required DateTime dateOfBirth,
+    required List<String> selectedTags,
+  }) async {
+    setLoading(true);
+    clearError();
+
+    try {
+      if (user == null) {
+        throw Exception('No authenticated user found');
+      }
+
+      final now = DateTime.now();
+
+      // create display name from firstName + lastName
+      final displayName = '$firstName $lastName';
+
+      // create username from email (everything before @)
+      final username = user!.email.split('@')[0];
+
+      // update user object locally
+      user = user!.copyWith(
+        firstName: firstName,
+        lastName: lastName,
+        displayName: displayName,
+        username: username,
+        dateOfBirth: dateOfBirth,
+        selectedTags: selectedTags,
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      // write to firestore
+      await firestore.collection('users').doc(user!.uid).set(
+        user!.toMap(),
+        SetOptions(merge: true), // merge: true means dont overwrite existing fields
+      );
+
+      notifyListeners();
+    } catch (e) {
+      setError('Failed to save profile: ${e.toString()}');
+      rethrow; // re-throw so ProfileSetupPage can handle it
     } finally {
       setLoading(false);
     }
