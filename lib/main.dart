@@ -13,6 +13,7 @@ import 'package:provider/provider.dart';
 import 'screens/auth/auth_wrapper.dart';
 import 'screens/home/home_page.dart';
 import 'screens/notifications/notifications.dart';
+import 'screens/leaderboard/leaderboard.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -52,7 +53,7 @@ class MyApp extends StatelessWidget {
           '/profile': (context) => const ProfilePage(),
           '/order-transactions': (context) => const OrderTransactionsPage(),
           '/posted-items': (context) => const PostedItemsPage(),
-          // '/leaderboard' : (context) => const LeaderboardScreen(),
+          '/leaderboard': (context) => const LeaderboardScreen(),
           // '/settings' : (context) => const SettingsScreen(),
         },
         home: const AuthWrapper(),
