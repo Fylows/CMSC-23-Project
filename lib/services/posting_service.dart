@@ -202,6 +202,13 @@ class PostingService {
         'resolvedAt': DateTime.now(),
       });
 
+      // update posting status
+      await firestore.collection('postings').doc(postingId).update({
+        'status': 'reserved',
+        'claimedBy': claimerId,
+        'updatedAt': DateTime.now(),
+      });
+
       // reject all other claims for this posting
       final otherClaims = await firestore
         .collection('claims')
