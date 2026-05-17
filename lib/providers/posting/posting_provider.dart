@@ -1,0 +1,143 @@
+import 'package:flutter/material.dart';
+import 'dart:io';
+import '../../models/posting_model.dart';
+import '../../models/user/user_model.dart';
+import '../../services/posting_service.dart';
+
+class PostingProvider extends ChangeNotifier {
+  final PostingService postingService = PostingService();
+
+  // available postings (for the home feed)
+  List<PostedItem> availablePostings = [];
+
+  // user's own postings
+  List<PostedItem> userPostings = [];
+
+  // state tracking
+  bool isLoading = false;
+  String? errorMessage;
+
+  // streams
+  late Stream<List<PostedItem>> availablePostingsStream;
+
+  /// get available postings stream
+  Stream<List<PostedItem>> getAvailablePostingsStream() {
+    return postingService.getAvailablePostings();
+  }
+
+  /// get user's postings stream
+  Stream<List<PostedItem>> getUserPostingsStream(String userId) {
+    return postingService.getUserPostings(userId);
+  }
+
+  /// get filtered postings by user's tags
+  Stream<List<PostedItem>> getPersonalizedFeed(List<String> userTags) {
+    if (userTags.isEmpty) {
+      return postingService.getAvailablePostings();
+    }
+    return postingService.getPostingByTags(userTags);
+  }
+
+  /// create a new posting
+  Future<void> createPosting({
+    required User currentUser,
+    required String itemName,
+    required String description,
+    required File? photoFile,
+    required List<String> selectedTags,
+    required DateTime expirationDate,
+  }) async {
+    setLoading(true);
+    clearError();
+
+    try {
+      final posting = await postingService.createPosting(
+        posterId: currentUser.uid, 
+        posterName: currentUser.displayName ?? '${currentUser.firstName} ${currentUser.lastName}', 
+        posterVerified: currentUser.isVerified, 
+        itemName: itemName, 
+        description: description, 
+        photoFile: photoFile, 
+        selectedTags: selectedTags, 
+        expirationDate: expirationDate
+      );
+
+      // add to local list
+      userPostings.insert(0, posting);
+      notifyListeners();
+    } catch (e) {
+      setError('Failed to create posting: ${e.toString()}');
+      rethrow; // send error to UI
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  /// update a posting status
+  Future<void> updatePostingStatus(
+    String postingId,
+    String newStatus,
+    { String? claimedBy, }
+  ) async {
+    setLoading(true);
+    clearError();
+
+    try {
+      await postingService.updatePostingStatus(
+        postingId, 
+        newStatus,
+        claimedBy: claimedBy,
+      );
+
+      // update local list
+      final index = userPostings.indexWhere((p) => p.id == postingId);
+      if (index != -1) {
+        userPostings[index] = userPostings[index].copyWith(
+          status: newStatus,
+          claimedBy: claimedBy,
+          updatedAt: DateTime.now(),
+        );
+        notifyListeners();
+      }
+    } catch (e) {
+      setError('Failed to update posting: ${e.toString()}');
+      rethrow;
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  /// delete a posting
+  Future<void> deletePosting(String postingId) async {
+    setLoading(true);
+    clearError();
+
+    try {
+      await postingService.deletePosting(postingId);
+
+      // remove from local list
+      userPostings.removeWhere((p) => p.id == postingId);
+      notifyListeners();
+    } catch (e) {
+      setError('Failed to delete posting: ${e.toString()}');
+      rethrow;
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // ========== HELPER METHODS =======
+  void setLoading(bool value) {
+    isLoading = value;
+    notifyListeners();
+  }
+
+  void setError(String message) {
+    errorMessage = message;
+    notifyListeners();
+  }
+
+  void clearError() {
+    errorMessage = null;
+  }
+}
