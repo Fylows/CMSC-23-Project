@@ -146,6 +146,7 @@ class PostingService {
       if (doc.exists) {
         return PostedItem.fromMap(doc.data()!, doc.id);
       }
+      return null;
     } catch (e) {
       throw Exception('Failed to get posting: $e');
     }

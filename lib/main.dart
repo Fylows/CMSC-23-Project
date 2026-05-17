@@ -1,6 +1,7 @@
 import 'package:elbi_eats/firebase_options.dart';
 import 'package:elbi_eats/providers/auth/auth_provider.dart';
 import 'package:elbi_eats/providers/posting/posting_provider.dart';
+import 'package:elbi_eats/screens/pantry/post_item_page.dart';
 import 'package:elbi_eats/screens/profile/profile_page.dart';
 import 'package:elbi_eats/screens/profile/order_transactions_page.dart';
 import 'package:elbi_eats/screens/profile/posted_items_page.dart';
@@ -38,6 +39,7 @@ class MyApp extends StatelessWidget {
         initialRoute: '/',
         routes: {
           '/home': (context) => const MainScaffold(child: HomePage()),
+          '/post-item': (context) => const PostItemPage(),
 
           // --- NAV BAR ---
           // '/pantry' : (context) => const MainScaffold(currentRoute: '/pantry', child: PantryScreen()),

@@ -1,8 +1,8 @@
+import 'package:elbi_eats/screens/pantry/post_item_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:elbi_eats/providers/auth/auth_provider.dart';
 import '../auth/auth_wrapper.dart';
-import '../../widgets/custom_drawer.dart';
 
 // TODO: create homescreen
 // this is just a placeholder home screen for testing
@@ -37,6 +37,16 @@ class HomePage extends StatelessWidget {
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: const Color(0xFFFA5800),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const PostItemPage()),
+          );
+        },
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
