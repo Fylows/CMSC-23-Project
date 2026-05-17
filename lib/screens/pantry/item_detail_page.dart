@@ -219,18 +219,44 @@ class ItemDetailPage extends StatelessWidget {
   }
 
   Widget _buildClaimButton(BuildContext context, PostingProvider postingProvider) {
+    final authProvider = context.read<AuthProvider>();
+
     return Padding(
       padding: const EdgeInsets.all(16),
       child: ElevatedButton(
         onPressed: item.status == 'available'
-          ? () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Claim functionality coming soon!'))
-              );
+          ? () async {
+              if (authProvider.user == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Claim functionality coming soon!'))
+                );
+                return;
+              }
+
+              try {
+                await postingProvider.createClaim(
+                  item.id, 
+                  authProvider.user!.uid, 
+                  authProvider.user!.displayName ?? 'Anonymous'
+                );
+
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Item claimed! Waiting for owner approval.'))
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error claiming item: $e'))
+                  );
+                }
+              }
             }
           : null,
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFFFA5800),
+          disabledBackgroundColor: Colors.grey.shade400,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(borderRadius: BorderRadiusGeometry.circular(8)),
         ),
@@ -240,7 +266,9 @@ class ItemDetailPage extends StatelessWidget {
             const Icon(Icons.shopping_cart, color: Colors.white),
             const SizedBox(width: 8),
             Text(
-              item.status == 'available' ? 'Claim Item' : 'Already Claimed,',
+              item.status == 'available' ? 'Claim Item' : 
+              item.status == 'reserved' ? 'Already Claimed,' :
+              'Completed',
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,

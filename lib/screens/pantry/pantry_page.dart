@@ -15,7 +15,7 @@ class PantryPage extends StatefulWidget {
 
 class _PantryPageState extends State<PantryPage> {
   final searchController = TextEditingController();
-  String selectedFilter = 'available'; // available, expired, claimed
+  String selectedFilter = 'available'; // available, expired, claimed, bids, completed
   bool showOnlyMyItems = false;
 
   @override
@@ -88,11 +88,15 @@ class _PantryPageState extends State<PantryPage> {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
-                        _buildFilterChip('available', 'All items'),
+                        _buildFilterChip('available', 'All'),
                         const SizedBox(width: 8),
                         _buildFilterChip('expired', 'Expired'),
                         const SizedBox(width: 8),
-                        _buildFilterChip('claimed', 'To Claim'),
+                        _buildFilterChip('claimed', 'Claim'),
+                        const SizedBox(width: 8),
+                        _buildFilterChip('bids', 'Bids'),
+                        const SizedBox(width: 8),
+                        _buildFilterChip('completed', 'Confirmed'),
                       ],
                     ),
                   ),
@@ -149,14 +153,22 @@ class _PantryPageState extends State<PantryPage> {
 
                   List<PostedItem> items = snapshot.data!;
 
-                  // filter by status
+                  // apply filter based on selected tab
                   if (selectedFilter == 'expired') {
                     items = items
                       .where((item) => item.expirationDate.isBefore(DateTime.now()))
                       .toList();
                   } else if (selectedFilter == 'claimed') {
-                    items = items.where((item) => item.status == 'reserved').toList();
+                    // show items user has claimed (pending or accepted)
+                    items = items.where((item) => item.claimedBy == authProvider.user?.uid).toList();
+                  } else if (selectedFilter == 'bids') {
+                    // show items with multiple pending claims
+                    // note: filter will be done in itembuilder via stream
+                    items = items.where((item) => item.status == 'available').toList();
+                  }  else if (selectedFilter == 'completed') {
+                    items = items.where((item) => item.status == 'completed').toList();
                   } else {
+                    // 'available' - default
                     items = items.where((item) => item.status == 'available').toList();
                   }
 
@@ -188,6 +200,30 @@ class _PantryPageState extends State<PantryPage> {
                     itemCount: items.length, 
                     itemBuilder: (context, index) {
                       final item = items[index];
+
+                      // special handling for "bids" filter
+                      if (selectedFilter == 'bids') {
+                        return StreamBuilder<List<Claim>>(
+                          stream: postingProvider.getClaimsForPostingStream(item.id), 
+                          builder: (context, claimsSnapshot) {
+                            // only show items with 2+ pending claims
+                            if (!claimsSnapshot.hasData || claimsSnapshot.data!.where((c) => c.status == 'pending').length < 2) {
+                              return const SizedBox.shrink();
+                            }
+                            return ItemCard(
+                              item: item, 
+                              onTap: () {
+                                Navigator.push(
+                                  context, 
+                                  MaterialPageRoute(
+                                    builder: (context) => ItemDetailPage(item: item),
+                                  ),
+                                );
+                              }
+                            );
+                          }
+                        );
+                      }
                       return ItemCard(
                         item: item,
                         onTap: () {

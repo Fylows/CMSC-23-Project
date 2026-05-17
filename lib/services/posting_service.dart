@@ -151,4 +151,110 @@ class PostingService {
       throw Exception('Failed to get posting: $e');
     }
   }
+
+  /// create a new claim for an item
+  Future<void> createClaim(
+    String postingId,
+    String claimerId,
+    String claimerName,
+  ) async {
+    try {
+      final postingDoc = await firestore.collection('postings').doc(postingId).get();
+      if (!postingDoc.exists) {
+        throw Exception('Posting not found');
+      }
+
+      final posterId = postingDoc.data()?['posterId'] ?? '';
+
+      final claimId = firestore.collection('claims').doc().id;
+      final claim = Claim(
+        id: claimId, 
+        postingId: postingId, 
+        posterId: posterId,
+        claimerId: claimerId, 
+        claimerName: claimerName, 
+        status: 'pending', 
+        claimedAt: DateTime.now(),
+      );
+
+      await firestore.collection('claims').doc(claimId).set(claim.toMap());
+    } catch (e) {
+      throw Exception('Failed to create claim: $e');
+    }
+  }
+
+  /// get all claims for a posting
+  Stream<List<Claim>> getClaimsForPosting(String postingId) {
+    return firestore
+      .collection('claims')
+      .where('postingId', isEqualTo: postingId)
+      .snapshots()
+      .map((snapshot) =>
+        snapshot.docs.map((doc) => Claim.fromMap(doc.data(), doc.id)).toList());
+  }
+
+  /// accept a claim and update posting status
+  Future<void> acceptClaim(String claimId, String postingId, String claimerId) async {
+    try {
+      // update claim status
+      await firestore.collection('claims').doc(claimId).update({
+        'status': 'accepted',
+        'resolvedAt': DateTime.now(),
+      });
+
+      // reject all other claims for this posting
+      final otherClaims = await firestore
+        .collection('claims')
+        .where('postingId', isEqualTo: postingId)
+        .where('id', isNotEqualTo: claimId)
+        .get();
+      
+      for (var doc in otherClaims.docs) {
+        await doc.reference.update({'status': 'rejected'});
+      }
+    } catch (e) {
+      throw Exception('Failed to accept claim: $e');
+    }
+  }
+
+  /// complete a claim after QR handshake
+  Future<void> completeClaim(String postingId, String claimId) async {
+    try {
+      await firestore.collection('claims').doc(claimId).update({
+        'status': 'completed',
+        'resolvedAt': DateTime.now(),
+      });
+
+      await firestore.collection('postings').doc(postingId).update({
+        'status': 'completed',
+        'updatedAt': DateTime.now(),
+      });
+    } catch (e) {
+      throw Exception('Failed to complete claim: $e');
+    }
+  }
+
+  /// get claims for current user (as the claimer)
+  Stream<List<Claim>> getUserClaims(String claimerId) {
+    return firestore
+      .collection('claims')
+      .where('claimerId', isEqualTo: claimerId)
+      .snapshots()
+      .map((snapshot) =>
+        snapshot.docs.map((doc) => Claim.fromMap(doc.data(), doc.id)).toList());
+  }
+
+  /// get count of claims for a posting (for the "Bids" filter)
+  Future<int> getClaimCount(String postingId) async {
+    try {
+      final snapshot = await firestore
+        .collection('claims')
+        .where('postingId', isEqualTo: postingId)
+        .where('status', isEqualTo: 'pending')
+        .get();
+      return snapshot.docs.length;
+    } catch (e) {
+      return 0;
+    }
+  }
 }

@@ -13,6 +13,9 @@ class PostingProvider extends ChangeNotifier {
   // user's own postings
   List<PostedItem> userPostings = [];
 
+  // list of claims of a user
+  List<Claim> myClaims = [];
+
   // state tracking
   bool isLoading = false;
   String? errorMessage;
@@ -124,6 +127,58 @@ class PostingProvider extends ChangeNotifier {
     } finally {
       setLoading(false);
     }
+  }
+
+  /// create a claim
+  Future<void> createClaim(String postingId, String claimerId, String claimerName) async {
+    try {
+      await postingService.createClaim(postingId, claimerId, claimerName);
+    } catch (e) {
+      errorMessage = e.toString();
+      notifyListeners();
+    }
+  }
+
+  /// accept a claim
+  Future<void> acceptClaim(String claimId, String postingId, String claimerId) async {
+    try {
+      isLoading = true;
+      notifyListeners();
+
+      await postingService.acceptClaim(claimId, postingId, claimerId);
+
+      isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      errorMessage = e.toString();
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// complete a claim
+  Future<void> completeClaim(String postingId, String claimId) async {
+    try {
+      isLoading = true;
+      notifyListeners();
+
+      await postingService.completeClaim(postingId, claimId);
+
+      isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      errorMessage = e.toString();
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Stream<List<Claim>> getUserClaimsStream(String claimerId) {
+    return postingService.getUserClaims(claimerId);
+  }
+
+  Stream<List<Claim>> getClaimsForPostingStream(String postingId) {
+    return postingService.getClaimsForPosting(postingId);
   }
 
   // ========== HELPER METHODS =======
