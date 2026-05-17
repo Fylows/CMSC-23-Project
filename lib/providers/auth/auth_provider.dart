@@ -151,10 +151,15 @@ class AuthProvider extends ChangeNotifier {
       );
 
       // write to firestore
-      await firestore.collection('users').doc(user!.uid).set(
-        user!.toMap(),
-        SetOptions(merge: true), // merge: true means dont overwrite existing fields
-      );
+      await firestore
+          .collection('users')
+          .doc(user!.uid)
+          .set(
+            user!.toMap(),
+            SetOptions(
+              merge: true,
+            ), // merge: true means dont overwrite existing fields
+          );
 
       notifyListeners();
     } catch (e) {
