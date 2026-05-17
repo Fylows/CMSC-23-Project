@@ -6,7 +6,7 @@ import '../auth/auth_wrapper.dart';
 import 'package:elbi_eats/widgets/searchbar.dart';
 import 'package:elbi_eats/widgets/product_card.dart';
 import 'package:elbi_eats/widgets/small_product_card.dart';
-import 'package:elbi_eats/screens/leaderboard/leaderboard_bar.dart';
+import 'package:elbi_eats/screens/home/leaderboard_bar.dart';
 import 'package:elbi_eats/screens/pantry/post_item_page.dart';
 
 class HomePage extends StatefulWidget {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-// ─── Data Model ───────────────────────────────────────────────────────────────
 
+// ─── Data Model ───────────────────────────────────────────────────────────────
 class LeaderboardEntry {
   final int rank;
   final String username;
