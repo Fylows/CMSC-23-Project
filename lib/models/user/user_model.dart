@@ -38,7 +38,7 @@ class User {
       'email': email,
       'displayName': displayName,
       'username': username,
-      'firstname': firstName,
+      'firstName': firstName,
       'lastName': lastName,
       'dateOfBirth': dateOfBirth,
       'selectedTags': selectedTags ?? [],
@@ -59,7 +59,7 @@ class User {
       email: map['email'] ?? '',
       displayName: map['displayName'],
       username: map['username'],
-      firstName: map['firstname'],
+      firstName: map['firstName'] ?? map['firstname'], // fallback to old
       lastName: map['lastName'],
       dateOfBirth: map['dateOfBirth']?.toDate(),
       selectedTags: List<String>.from(map['selectedTags'] ?? []),
