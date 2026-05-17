@@ -49,25 +49,39 @@ class MainScaffold extends StatelessWidget {
           ),
         ],
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: navItems
-            .indexWhere((i) => i.route == currentRoute)
-            .clamp(0, navItems.length - 1),
-        onDestinationSelected: (index) {
-          final route = navItems[index].route;
-          if (currentRoute == route) return;
-          route == '/home'
-              ? Navigator.pushReplacementNamed(context, route)
-              : Navigator.pushNamed(context, route);
-        },
-        destinations: navItems
-            .map(
-              (item) => NavigationDestination(
-                icon: Icon(item.icon),
-                label: item.label,
-              ),
-            )
-            .toList(),
+
+      bottomNavigationBar: Theme(
+        data: Theme.of(context).copyWith(
+          navigationBarTheme: NavigationBarThemeData(
+            labelTextStyle: WidgetStateProperty.all(
+              const TextStyle(color: Colors.white, fontSize: 12),
+            ),
+          ),
+        ),
+        child: NavigationBar(
+          backgroundColor: const Color(0xFFCB2020),
+          indicatorColor: const Color(0xFFE85555),
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+          selectedIndex: navItems
+              .indexWhere((i) => i.route == currentRoute)
+              .clamp(0, navItems.length - 1),
+          onDestinationSelected: (index) {
+            final route = navItems[index].route;
+            if (currentRoute == route) return;
+            route == '/home'
+                ? Navigator.pushReplacementNamed(context, route)
+                : Navigator.pushNamed(context, route);
+          },
+          destinations: navItems
+              .map(
+                (item) => NavigationDestination(
+                  icon: Icon(item.icon, color: Colors.white),
+                  selectedIcon: Icon(item.icon, color: Colors.white),
+                  label: item.label,
+                ),
+              )
+              .toList(),
+        ),
       ),
       body: child,
     );

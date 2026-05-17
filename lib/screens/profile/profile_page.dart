@@ -16,7 +16,7 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   bool isEditing = false;
   bool isAscending = true;
-  
+
   // Dummy data for demonstration
   final List<PostedItem> postedItems = [
     PostedItem(id: '1', name: 'Hotdog', expirationDate: DateTime(2026, 4, 30)),
@@ -25,9 +25,24 @@ class _ProfilePageState extends State<ProfilePage> {
   ];
 
   final List<OrderTransaction> transactions = [
-    OrderTransaction(id: '1', name: 'Pork', quantity: '2kgs', status: 'Pending'),
-    OrderTransaction(id: '2', name: 'Beef', quantity: '5kgs', status: 'To Claim'),
-    OrderTransaction(id: '3', name: 'Cabbage', quantity: '1kg', status: 'Completed'),
+    OrderTransaction(
+      id: '1',
+      name: 'Pork',
+      quantity: '2kgs',
+      status: 'Pending',
+    ),
+    OrderTransaction(
+      id: '2',
+      name: 'Beef',
+      quantity: '5kgs',
+      status: 'To Claim',
+    ),
+    OrderTransaction(
+      id: '3',
+      name: 'Cabbage',
+      quantity: '1kg',
+      status: 'Completed',
+    ),
   ];
 
   void _showFilterPopup(BuildContext context, Offset offset) {
@@ -67,7 +82,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 isAscending = val ?? true;
                               });
                             },
-                            child: Row( 
+                            child: Row(
                               children: [
                                 // First Radio Button (Ascending)
                                 Radio<bool>(
@@ -76,10 +91,13 @@ class _ProfilePageState extends State<ProfilePage> {
                                   // groupValue and onChanged are removed!
                                 ),
                                 const Text(
-                                  'Ascending', 
-                                  style: TextStyle(fontSize: 12, color: Color(0xFFCB2020)),
+                                  'Ascending',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Color(0xFFCB2020),
+                                  ),
                                 ),
-                                
+
                                 // Second Radio Button (Descending)
                                 Radio<bool>(
                                   value: false,
@@ -87,12 +105,15 @@ class _ProfilePageState extends State<ProfilePage> {
                                   // groupValue and onChanged are removed!
                                 ),
                                 const Text(
-                                  'Descending', 
-                                  style: TextStyle(fontSize: 12, color: Color(0xFFCB2020)),
+                                  'Descending',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Color(0xFFCB2020),
+                                  ),
                                 ),
                               ],
                             ),
-                          )
+                          ),
                         ],
                       ),
                     ],
@@ -168,7 +189,11 @@ class _ProfilePageState extends State<ProfilePage> {
                       CircleAvatar(
                         radius: 55,
                         backgroundColor: Colors.grey[300],
-                        child: const Icon(Icons.person, size: 70, color: Colors.white),
+                        child: const Icon(
+                          Icons.person,
+                          size: 70,
+                          color: Colors.white,
+                        ),
                       ),
                       if (isEditing)
                         Positioned(
@@ -180,7 +205,11 @@ class _ProfilePageState extends State<ProfilePage> {
                               color: Color(0xFFFA5800),
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.add, color: Colors.white, size: 20),
+                            child: const Icon(
+                              Icons.add,
+                              color: Colors.white,
+                              size: 20,
+                            ),
                           ),
                         ),
                     ],
@@ -203,7 +232,11 @@ class _ProfilePageState extends State<ProfilePage> {
                             if (isEditing)
                               const Padding(
                                 padding: EdgeInsets.only(left: 8.0),
-                                child: Icon(Icons.edit_outlined, color: Color(0xFFCB2020), size: 20),
+                                child: Icon(
+                                  Icons.edit_outlined,
+                                  color: Color(0xFFCB2020),
+                                  size: 20,
+                                ),
                               ),
                           ],
                         ),
@@ -211,15 +244,25 @@ class _ProfilePageState extends State<ProfilePage> {
                           '@${user?.username ?? user?.email?.split('@')[0] ?? 'username'}',
                           style: TextStyle(
                             fontSize: 16,
-                            color: const Color(0xFFCB2020).withValues(alpha: 0.6),
+                            color: const Color(
+                              0xFFCB2020,
+                            ).withValues(alpha: 0.6),
                           ),
                         ),
                         const SizedBox(height: 10),
                         Row(
                           children: [
-                            const Icon(Icons.emoji_events, color: Color(0xFFFA5800), size: 40),
+                            const Icon(
+                              Icons.emoji_events,
+                              color: Color(0xFFFA5800),
+                              size: 40,
+                            ),
                             const SizedBox(width: 12),
-                            Container(width: 1.5, height: 30, color: Colors.grey[400]),
+                            Container(
+                              width: 1.5,
+                              height: 30,
+                              color: Colors.grey[400],
+                            ),
                             const SizedBox(width: 12),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -255,7 +298,9 @@ class _ProfilePageState extends State<ProfilePage> {
             // --- Your Posted Items Section ---
             _buildSection(
               title: 'Your Posted Items',
-              items: postedItems.map((item) => _buildPostedItemCard(item)).toList(),
+              items: postedItems
+                  .map((item) => _buildPostedItemCard(item))
+                  .toList(),
               onFilterTap: (offset) => _showFilterPopup(context, offset),
               showAddIcon: isEditing,
               onTitleTap: () => Navigator.pushNamed(context, '/posted-items'),
@@ -268,7 +313,8 @@ class _ProfilePageState extends State<ProfilePage> {
               items: transactions.map((t) => _buildTransactionCard(t)).toList(),
               onFilterTap: (offset) => _showFilterPopup(context, offset),
               showVisibilityIcon: isEditing,
-              onTitleTap: () => Navigator.pushNamed(context, '/order-transactions'),
+              onTitleTap: () =>
+                  Navigator.pushNamed(context, '/order-transactions'),
             ),
             const SizedBox(height: 40),
 
@@ -293,10 +339,18 @@ class _ProfilePageState extends State<ProfilePage> {
                       backgroundColor: const Color(0xFFFFD700),
                       foregroundColor: Colors.white,
                       minimumSize: const Size(220, 55),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(25),
+                      ),
                       elevation: 0,
                     ),
-                    child: const Text('Edit Profile', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    child: const Text(
+                      'Edit Profile',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
               )
@@ -323,10 +377,18 @@ class _ProfilePageState extends State<ProfilePage> {
                           backgroundColor: Colors.greenAccent[700],
                           foregroundColor: Colors.white,
                           minimumSize: const Size(160, 50),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
                           elevation: 0,
                         ),
-                        child: const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        child: const Text(
+                          'Save Changes',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
                       ),
                     ),
                     Container(
@@ -346,10 +408,18 @@ class _ProfilePageState extends State<ProfilePage> {
                           backgroundColor: Colors.red,
                           foregroundColor: Colors.white,
                           minimumSize: const Size(160, 50),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
                           elevation: 0,
                         ),
-                        child: const Text('Discard Changes', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        child: const Text(
+                          'Discard Changes',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -365,10 +435,34 @@ class _ProfilePageState extends State<ProfilePage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            IconButton(icon: const Icon(Icons.home, color: Colors.white, size: 30), onPressed: () {}),
-            IconButton(icon: const Icon(Icons.inventory_2, color: Colors.white, size: 30), onPressed: () {}),
-            IconButton(icon: const Icon(Icons.chat_bubble_outline, color: Colors.white, size: 30), onPressed: () {}),
-            IconButton(icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 30), onPressed: () {}),
+            IconButton(
+              icon: const Icon(Icons.home, color: Colors.white, size: 30),
+              onPressed: () {},
+            ),
+            IconButton(
+              icon: const Icon(
+                Icons.inventory_2,
+                color: Colors.white,
+                size: 30,
+              ),
+              onPressed: () {},
+            ),
+            IconButton(
+              icon: const Icon(
+                Icons.chat_bubble_outline,
+                color: Colors.white,
+                size: 30,
+              ),
+              onPressed: () {},
+            ),
+            IconButton(
+              icon: const Icon(
+                Icons.shopping_cart_outlined,
+                color: Colors.white,
+                size: 30,
+              ),
+              onPressed: () {},
+            ),
           ],
         ),
       ),
@@ -408,7 +502,11 @@ class _ProfilePageState extends State<ProfilePage> {
                     onTap: onTitleTap,
                     child: Text(
                       title,
-                      style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   Row(
@@ -416,16 +514,29 @@ class _ProfilePageState extends State<ProfilePage> {
                       if (showAddIcon)
                         const Padding(
                           padding: EdgeInsets.only(right: 12.0),
-                          child: Icon(Icons.add_circle, color: Colors.white, size: 24),
+                          child: Icon(
+                            Icons.add_circle,
+                            color: Colors.white,
+                            size: 24,
+                          ),
                         ),
                       if (showVisibilityIcon)
                         const Padding(
                           padding: EdgeInsets.only(right: 12.0),
-                          child: Icon(Icons.visibility_off, color: Colors.white, size: 24),
+                          child: Icon(
+                            Icons.visibility_off,
+                            color: Colors.white,
+                            size: 24,
+                          ),
                         ),
                       GestureDetector(
-                        onTapDown: (details) => onFilterTap(details.globalPosition),
-                        child: const Icon(Icons.swap_vert, color: Colors.white, size: 24),
+                        onTapDown: (details) =>
+                            onFilterTap(details.globalPosition),
+                        child: const Icon(
+                          Icons.swap_vert,
+                          color: Colors.white,
+                          size: 24,
+                        ),
                       ),
                     ],
                   ),
@@ -497,7 +608,11 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               child: const Text(
                 'Remove',
-                style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
         ],
@@ -548,7 +663,11 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             child: Text(
               transaction.status,
-              style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 9,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -558,10 +677,14 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Color _getStatusColor(String status) {
     switch (status) {
-      case 'Pending': return Colors.orange;
-      case 'To Claim': return Colors.pink;
-      case 'Completed': return Colors.green;
-      default: return Colors.grey;
+      case 'Pending':
+        return Colors.orange;
+      case 'To Claim':
+        return Colors.pink;
+      case 'Completed':
+        return Colors.green;
+      default:
+        return Colors.grey;
     }
   }
 }
