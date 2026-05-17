@@ -1,4 +1,3 @@
-import 'package:elbi_eats/screens/pantry/post_item_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:elbi_eats/providers/auth/auth_provider.dart';
@@ -8,8 +7,6 @@ import 'package:elbi_eats/widgets/searchbar.dart';
 import 'package:elbi_eats/widgets/product_card.dart';
 import 'package:elbi_eats/widgets/small_product_card.dart';
 import 'package:elbi_eats/widgets/leaderboard_bar.dart';
-
-import 'package:elbi_eats/screens/pantry/post_item_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -37,16 +34,6 @@ class _HomePageState extends State<HomePage> {
             SizedBox(height: 14),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFFFA5800),
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const PostItemPage()),
-          );
-        },
-        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
