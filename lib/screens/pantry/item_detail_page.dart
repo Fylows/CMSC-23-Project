@@ -235,7 +235,11 @@ class ItemDetailPage extends StatelessWidget {
                     onPressed: () async {
                       final chatId = await context
                           .read<MessageProvider>()
-                          .getOrCreateChat(item.posterId, item.posterName);
+                          .getOrCreateChat(
+                            item.posterId,
+                            item.posterName,
+                            authProvider.user!.displayName ?? 'Anonymous',
+                          );
                       if (chatId != null && context.mounted) {
                         Navigator.push(
                           context,

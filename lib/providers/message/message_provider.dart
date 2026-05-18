@@ -32,23 +32,40 @@ class MessageProvider extends ChangeNotifier {
     return _db
         .collection('chats')
         .where('members', arrayContains: uid)
-        // .orderBy('lastMessageTime', descending: true) // ← comment this out temporarily
         .snapshots()
         .map(
           (snap) => snap.docs.map((doc) {
-            final data = doc.data();
+            final data = doc.data() as Map<String, dynamic>;
+            final memberNames = Map<String, String>.from(
+              data['memberNames'] ?? {},
+            );
+
+            // Get the OTHER person's name
+            final otherName = memberNames.entries
+                .firstWhere(
+                  (e) => e.key != uid,
+                  orElse: () => MapEntry('', 'Unknown'),
+                )
+                .value;
+
+            // "You: ..." or the last message as-is
+            final lastSenderId = data['lastMessageSenderId'] ?? '';
+            final lastMessage = data['lastMessage'] ?? '';
+            final preview = lastMessage.isEmpty
+                ? ''
+                : lastSenderId == uid
+                ? 'You: $lastMessage'
+                : lastMessage;
+
             return {
               'chatId': doc.id,
-              'otherUserName': data['otherUserName'] ?? 'Unknown',
-              'lastMessage': data['lastMessage'] ?? '',
+              'otherUserName': otherName,
+              'lastMessage': preview, // ← "You: hey" or "hey"
               'lastMessageTime': data['lastMessageTime'],
               'members': data['members'] ?? [],
             };
           }).toList(),
-        )
-        .handleError((e) {
-          debugPrint('DEBUG watchChats error: $e'); // ← will show exact error
-        });
+        );
   }
 
   // ─── Get or Create Chat ──────────────────────────────────────────────────
@@ -57,13 +74,11 @@ class MessageProvider extends ChangeNotifier {
   Future<String?> getOrCreateChat(
     String otherUserId,
     String otherUserName,
+    String currentName,
   ) async {
     final currentUid = _auth.currentUser?.uid;
-    if (currentUid == null) {
-      _error = 'Not authenticated';
-      notifyListeners();
-      return null;
-    }
+    print("Current user name: $currentName");
+    if (currentUid == null) return null;
 
     try {
       _isLoading = true;
@@ -77,15 +92,17 @@ class MessageProvider extends ChangeNotifier {
       if (!chatDoc.exists) {
         await chatRef.set({
           'members': sorted,
-          'otherUserName': otherUserName,
+          'memberNames': {
+            currentUid: currentName, // ← store both names
+            otherUserId: otherUserName,
+          },
           'lastMessage': '',
+          'lastMessageSenderId': '',
           'lastMessageTime': FieldValue.serverTimestamp(),
           'createdAt': FieldValue.serverTimestamp(),
         });
-        debugPrint('DEBUG chat created: $chatId');
       }
 
-      _activeChatId = chatId;
       _isLoading = false;
       notifyListeners();
       return chatId;
@@ -134,9 +151,9 @@ class MessageProvider extends ChangeNotifier {
 
       batch.update(chatRef, {
         'lastMessage': text.trim(),
+        'lastMessageSenderId': currentUid, // ← track who sent last
         'lastMessageTime': FieldValue.serverTimestamp(),
       });
-
       await batch.commit();
     } catch (e) {
       _error = e.toString();
