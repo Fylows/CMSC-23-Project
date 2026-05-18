@@ -1,4 +1,3 @@
-import 'package:elbi_eats/screens/pantry/post_item_page.dart';
 import 'package:flutter/material.dart';
 import 'package:elbi_eats/widgets/product_card.dart';
 import 'package:elbi_eats/widgets/small_product_card.dart';
@@ -27,7 +26,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final leaderboard = context.watch<LeaderboardProvider>();
+    final leaderboard = context.read<LeaderboardProvider>();
+    leaderboard.loadLeaderboard(context.read<AuthProvider>().user?.uid ?? '');
     return Scaffold(
       backgroundColor: const Color(0xFFF2F2F2),
       body: SingleChildScrollView(
@@ -44,16 +44,6 @@ class _HomePageState extends State<HomePage> {
             SizedBox(height: 14),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFFFA5800),
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const PostItemPage()),
-          );
-        },
-        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
@@ -154,6 +144,7 @@ class _LeaderboardSection extends StatelessWidget {
   final LeaderboardProvider leaderboard;
 
   const _LeaderboardSection({required this.leaderboard});
+
   final tempPfp =
       'https://www.gravatar.com/avatar/?d=mp'; // ← grey silhouette, no face;
   @override
