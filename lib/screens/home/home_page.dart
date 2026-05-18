@@ -26,7 +26,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final leaderboard = context.watch<LeaderboardProvider>();
+    final leaderboard = context.read<LeaderboardProvider>();
+    leaderboard.loadLeaderboard(context.read<AuthProvider>().user?.uid ?? '');
     return Scaffold(
       backgroundColor: const Color(0xFFF2F2F2),
       body: SingleChildScrollView(
@@ -148,7 +149,6 @@ class _LeaderboardSection extends StatelessWidget {
       'https://www.gravatar.com/avatar/?d=mp'; // ← grey silhouette, no face;
   @override
   Widget build(BuildContext context) {
-    leaderboard.loadLeaderboard(context.read<AuthProvider>().user?.uid ?? '');
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
