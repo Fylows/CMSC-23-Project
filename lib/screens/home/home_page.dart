@@ -404,6 +404,7 @@ class LeaderboardSection extends StatelessWidget {
   const LeaderboardSection({super.key, required this.leaderboard});
   final tempPfp =
       'https://www.gravatar.com/avatar/?d=mp'; // ← grey silhouette, no face;
+  
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -429,91 +430,42 @@ class LeaderboardSection extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           leaderboard.state.topThree.length >= 3
-              ? _buildLeaderboardDisplay(leaderboard)
-              : const SizedBox(
-                  height: 100,
-                  child: Center(
-                    child: CircularProgressIndicator(color: Colors.white),
-                  ),
+              ? Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    LeaderboardBar(
+                      imageUrl:
+                          leaderboard.state.topThree[1].imageUrl ?? tempPfp,
+                      username: leaderboard.state.topThree[1].username,
+                      height: 80,
+                      rank: 2,
+                    ),
+                    const SizedBox(width: 12),
+                    LeaderboardBar(
+                      imageUrl:
+                          leaderboard.state.topThree[0].imageUrl ?? tempPfp,
+                      username: leaderboard.state.topThree[0].username,
+                      height: 110,
+                      rank: 1,
+                      isCenter: true,
+                    ),
+                    const SizedBox(width: 12),
+                    LeaderboardBar(
+                      imageUrl:
+                          leaderboard.state.topThree[2].imageUrl ?? tempPfp,
+                      username: leaderboard.state.topThree[2].username,
+                      height: 65,
+                      rank: 3,
+                    ),
+                  ],
+                )
+              : const Center(
+                  child: CircularProgressIndicator(color: Colors.white),
                 ),
           const SizedBox(height: 16),
         ],
       ),
-    );
-  }
-
-  Widget _buildLeaderboardDisplay(LeaderboardProvider leaderboard) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _buildLeaderboardCard(
-          position: '2',
-          name: leaderboard.state.topThree[1].username,
-          score: leaderboard.state.topThree[1].contributions,
-          imageUrl: leaderboard.state.topThree[1].imageUrl ?? tempPfp,
-          height: 100,
-        ),
-        const SizedBox(width: 12),
-        _buildLeaderboardCard(
-          position: '1',
-          name: leaderboard.state.topThree[0].username,
-          score: leaderboard.state.topThree[0].contributions,
-          imageUrl: leaderboard.state.topThree[0].imageUrl ?? tempPfp,
-          height: 120,
-        ),
-        const SizedBox(width: 12),
-        _buildLeaderboardCard(
-          position: '3',
-          name: leaderboard.state.topThree[2].username,
-          score: leaderboard.state.topThree[2].contributions,
-          imageUrl: leaderboard.state.topThree[2].imageUrl ?? tempPfp,
-          height: 90,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLeaderboardCard({
-    required String position,
-    required String name,
-    required int score,
-    required String imageUrl,
-    required double height,
-  }) {
-    return Column(
-      children: [
-        CircleAvatar(
-          radius: 24,
-          backgroundImage: NetworkImage(imageUrl),
-        ),
-        const SizedBox(height: 4),
-        SizedBox(
-          height: height,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Text(
-                position,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
-              ),
-              Text(
-                name,
-                style: const TextStyle(color: Colors.white70, fontSize: 10),
-                overflow: TextOverflow.ellipsis,
-              ),
-              Text(
-                '$score pts',
-                style: const TextStyle(color: Colors.white70, fontSize: 9),
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 }
