@@ -33,6 +33,46 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.2"
+  camera:
+    dependency: "direct main"
+    description:
+      name: camera
+      sha256: dfa8fc5a1adaeb95e7a54d86a5bd56f4bb0e035515354c8ac6d262e35cec2ec8
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.10.6"
+  camera_android:
+    dependency: transitive
+    description:
+      name: camera_android
+      sha256: a2001f839b90d97fd40164c29661868403e92de5a98ae03e3f5a12848e606063
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.10.10+17"
+  camera_avfoundation:
+    dependency: transitive
+    description:
+      name: camera_avfoundation
+      sha256: "11b4aee2f5e5e038982e152b4a342c749b414aa27857899d20f4323e94cb5f0b"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.9.23+2"
+  camera_platform_interface:
+    dependency: transitive
+    description:
+      name: camera_platform_interface
+      sha256: "7ac852d77699acee79f0d438b793feee26721841e50973576419ff5c6d95e9b7"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.13.0"
+  camera_web:
+    dependency: transitive
+    description:
+      name: camera_web
+      sha256: "57f49a635c8bf249d07fb95eb693d7e4dda6796dedb3777f9127fb54847beba7"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.5+3"
   characters:
     dependency: transitive
     description:
@@ -217,6 +257,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.7.0"
+  firebase_messaging:
+    dependency: "direct main"
+    description:
+      name: firebase_messaging
+      sha256: "8d0dc81a31cd030170508dc3e89bfd14355b20a1b991340af5f018e37daab5d7"
+      url: "https://pub.dev"
+    source: hosted
+    version: "16.2.2"
+  firebase_messaging_platform_interface:
+    dependency: transitive
+    description:
+      name: firebase_messaging_platform_interface
+      sha256: "37abb0b0535c5497605ee94c12470e1ebbbe47e71a22d0c20bffcc912311f8cb"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.7.11"
+  firebase_messaging_web:
+    dependency: transitive
+    description:
+      name: firebase_messaging_web
+      sha256: "54e22b43e2c26a2728a3f68c188de0f9011993ae19ae959a06d476dad935c776"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.1.7"
   firebase_storage:
     dependency: "direct main"
     description:
@@ -600,6 +664,62 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.6.0"
+  shared_preferences:
+    dependency: "direct main"
+    description:
+      name: shared_preferences
+      sha256: c3025c5534b01739267eb7d76959bbc25a6d10f6988e1c2a3036940133dd10bf
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.5.5"
+  shared_preferences_android:
+    dependency: transitive
+    description:
+      name: shared_preferences_android
+      sha256: e8d4762b1e2e8578fc4d0fd548cebf24afd24f49719c08974df92834565e2c53
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.4.23"
+  shared_preferences_foundation:
+    dependency: transitive
+    description:
+      name: shared_preferences_foundation
+      sha256: "4e7eaffc2b17ba398759f1151415869a34771ba11ebbccd1b0145472a619a64f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.5.6"
+  shared_preferences_linux:
+    dependency: transitive
+    description:
+      name: shared_preferences_linux
+      sha256: "580abfd40f415611503cae30adf626e6656dfb2f0cee8f465ece7b6defb40f2f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.4.1"
+  shared_preferences_platform_interface:
+    dependency: transitive
+    description:
+      name: shared_preferences_platform_interface
+      sha256: "649dc798a33931919ea356c4305c2d1f81619ea6e92244070b520187b5140ef9"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.4.2"
+  shared_preferences_web:
+    dependency: transitive
+    description:
+      name: shared_preferences_web
+      sha256: c49bd060261c9a3f0ff445892695d6212ff603ef3115edbb448509d407600019
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.4.3"
+  shared_preferences_windows:
+    dependency: transitive
+    description:
+      name: shared_preferences_windows
+      sha256: "94ef0f72b2d71bc3e700e025db3710911bd51a71cefb65cc609dd0d9a982e3c1"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.4.1"
   sky_engine:
     dependency: transitive
     description: flutter
@@ -629,6 +749,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.4"
+  stream_transform:
+    dependency: transitive
+    description:
+      name: stream_transform
+      sha256: ad47125e588cfd37a9a7f86c7d6356dde8dfe89d071d293f80ca9e9273a33871
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.1"
   string_scanner:
     dependency: transitive
     description:

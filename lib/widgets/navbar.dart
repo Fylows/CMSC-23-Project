@@ -68,9 +68,10 @@ class MainScaffold extends StatelessWidget {
           onDestinationSelected: (index) {
             final route = navItems[index].route;
             if (currentRoute == route) return;
-            route == '/home'
-                ? Navigator.pushReplacementNamed(context, route)
-                : Navigator.pushNamed(context, route);
+            Navigator.pop(context);
+            if (ModalRoute.of(context)?.settings.name != route) {
+              Navigator.pushNamed(context, route);
+            }
           },
           destinations: navItems
               .map(

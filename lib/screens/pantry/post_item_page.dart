@@ -81,7 +81,7 @@ class _PostItemPageState extends State<PostItemPage> {
   /// show image picker modal
   void showImagePickerModal() {
     showModalBottomSheet(
-      context: context, 
+      context: context,
       builder: (context) => Container(
         padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
         child: Column(
@@ -101,7 +101,10 @@ class _PostItemPageState extends State<PostItemPage> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.photo_library, color: Color(0xFFFA5800)),
+              leading: const Icon(
+                Icons.photo_library,
+                color: Color(0xFFFA5800),
+              ),
               title: const Text('Choose from Gallery'),
               onTap: () {
                 Navigator.pop(context);
@@ -117,20 +120,20 @@ class _PostItemPageState extends State<PostItemPage> {
   /// Open date picker
   Future<void> selectExpirationDate() async {
     final DateTime? picked = await showDatePicker(
-      context: context, 
+      context: context,
       initialDate: expirationDate ?? DateTime.now().add(Duration(days: 1)),
-      firstDate: DateTime.now(), 
+      firstDate: DateTime.now(),
       lastDate: DateTime.now().add(Duration(days: 365)),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(primary: Color(0xFFFA5800))
-          ), 
+            colorScheme: ColorScheme.light(primary: Color(0xFFFA5800)),
+          ),
           child: child!,
         );
       },
     );
-    
+
     if (picked != null && picked != expirationDate) {
       setState(() {
         expirationDate = picked;
@@ -217,18 +220,18 @@ class _PostItemPageState extends State<PostItemPage> {
 
     if (authProvider.user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('You must be logged in to post items'))
+        const SnackBar(content: Text('You must be logged in to post items')),
       );
       return;
     }
 
     try {
       await postingProvider.createPosting(
-        currentUser: authProvider.user!, 
-        itemName: itemNameController.text.trim(), 
-        description: descriptionController.text.trim(), 
-        photoFile: selectedImage, 
-        selectedTags: selectedTags.toList(), 
+        currentUser: authProvider.user!,
+        itemName: itemNameController.text.trim(),
+        description: descriptionController.text.trim(),
+        photoFile: selectedImage,
+        selectedTags: selectedTags.toList(),
         expirationDate: expirationDate!,
       );
 
@@ -239,9 +242,9 @@ class _PostItemPageState extends State<PostItemPage> {
         Navigator.pop(context);
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error posting item: $e'))
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error posting item: $e')));
     }
   }
 
@@ -254,7 +257,7 @@ class _PostItemPageState extends State<PostItemPage> {
             backgroundColor: Colors.white,
             elevation: 0,
             leading: IconButton(
-              onPressed: () => Navigator.pop(context), 
+              onPressed: () => Navigator.pop(context),
               icon: const Icon(Icons.arrow_back, color: Colors.black),
             ),
             title: const Text(
@@ -267,7 +270,7 @@ class _PostItemPageState extends State<PostItemPage> {
             ),
             centerTitle: true,
             bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(1), 
+              preferredSize: const Size.fromHeight(1),
               child: Container(color: Colors.grey[300], height: 1),
             ),
           ),
@@ -318,7 +321,8 @@ class _PostItemPageState extends State<PostItemPage> {
                   enabled: !postingProvider.isLoading,
                   maxLines: 4,
                   decoration: InputDecoration(
-                    hintText: 'Describe the item, quality, and any special notes',
+                    hintText:
+                        'Describe the item, quality, and any special notes',
                     errorText: descriptionError,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -346,7 +350,9 @@ class _PostItemPageState extends State<PostItemPage> {
                 ),
                 const SizedBox(height: 8),
                 GestureDetector(
-                  onTap: postingProvider.isLoading ? null : showImagePickerModal,
+                  onTap: postingProvider.isLoading
+                      ? null
+                      : showImagePickerModal,
                   child: Container(
                     height: 150,
                     decoration: BoxDecoration(
@@ -392,10 +398,7 @@ class _PostItemPageState extends State<PostItemPage> {
                     padding: const EdgeInsets.only(top: 8),
                     child: Text(
                       photoError!,
-                      style: const TextStyle(
-                        color: Colors.red,
-                        fontSize: 12,
-                      ),
+                      style: const TextStyle(color: Colors.red, fontSize: 12),
                     ),
                   ),
                 const SizedBox(height: 20),
@@ -407,7 +410,9 @@ class _PostItemPageState extends State<PostItemPage> {
                 ),
                 const SizedBox(height: 8),
                 GestureDetector(
-                  onTap: postingProvider.isLoading ? null : selectExpirationDate,
+                  onTap: postingProvider.isLoading
+                      ? null
+                      : selectExpirationDate,
                   child: TextField(
                     enabled: false,
                     decoration: InputDecoration(
@@ -550,7 +555,7 @@ class _PostItemPageState extends State<PostItemPage> {
             ),
           ),
         );
-      }
+      },
     );
   }
 }

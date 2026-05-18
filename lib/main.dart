@@ -16,10 +16,13 @@ import 'screens/home/home_page.dart';
 import 'screens/notifications/notifications.dart';
 import 'screens/leaderboard/leaderboard.dart';
 import 'package:elbi_eats/providers/leaderboard/leaderboard_provider.dart';
+import 'package:elbi_eats/screens/messaging/chatlist_page.dart';
+import 'package:elbi_eats/providers/message/message_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
   runApp(const MyApp());
 }
 
@@ -30,9 +33,20 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => MessageProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => PostingProvider()),
-        ChangeNotifierProvider(create: (_) => LeaderboardProvider()),
+        ChangeNotifierProxyProvider<AuthProvider, LeaderboardProvider>(
+          // this watches AuthProvider and passes uid automatically
+          create: (_) => LeaderboardProvider(''),
+          update: (_, auth, previous) {
+            final uid = auth.user?.uid ?? '';
+            if (uid.isNotEmpty && previous?.topThree.isEmpty == true) {
+              previous?.loadLeaderboard(uid);
+            }
+            return previous ?? LeaderboardProvider(uid);
+          },
+        ),
       ],
       child: MaterialApp(
         title: 'Elbi Eats',
@@ -49,13 +63,14 @@ class MyApp extends StatelessWidget {
 
           '/notifications': (context) => const NotificationsPage(),
           // --- NAV BAR ---
-          '/pantry': (context) { 
+          '/pantry': (context) {
             final args = ModalRoute.of(context)?.settings.arguments as String?;
             return MainScaffold(child: PantryPage(initialSearch: args));
           },
-          // '/chat' : (context) => const MainScaffold(currentRoute: '/chat', child: ChatScreen()),
-          // '/cart' : (context) => const MainScaffold(currentRoute: '/cart', child: CartScreen()),
-
+          '/chat': (context) => const MainScaffold(
+            child:
+                ChatListPage(), // ← currentUserId will be set inside ChatListPage using AuthProvider
+          ), // '/cart' : (context) => const MainScaffold(currentRoute: '/cart', child: CartScreen()),
           // --- DRAWER ---
           '/profile': (context) => const ProfilePage(),
           '/order-transactions': (context) => const OrderTransactionsPage(),
