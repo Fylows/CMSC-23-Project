@@ -403,7 +403,12 @@ class ItemDetailPage extends StatelessWidget {
                       itemCount: pendingClaims.length,
                       itemBuilder: (context, index) {
                         final claim = pendingClaims[index];
-                        return _buildClaimCard(context, postingProvider, claim);
+                        return _buildClaimCard(
+                          context,
+                          postingProvider,
+                          claim,
+                          item,
+                        );
                       },
                     ),
                     const SizedBox(height: 16),
@@ -488,7 +493,10 @@ Widget _buildClaimCard(
   BuildContext context,
   PostingProvider postingProvider,
   Claim claim,
+  PostedItem item,
 ) {
+  AuthProvider authProvider = context.read<AuthProvider>();
+  MessageProvider messageProvider = context.read<MessageProvider>();
   return Container(
     margin: const EdgeInsets.only(bottom: 12),
     padding: const EdgeInsets.all(12),
@@ -514,23 +522,60 @@ Widget _buildClaimCard(
             Expanded(
               child: OutlinedButton(
                 onPressed: () async {
+                  // Capture these BEFORE any await
+                  final navigator = Navigator.of(context);
+                  final messenger = ScaffoldMessenger.of(context);
+
                   try {
+                    // Step 1 — accept the claim
                     await postingProvider.acceptClaim(
                       claim.id,
                       claim.postingId,
                       claim.claimerId,
                     );
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Claim accepted!')),
+
+                    messenger.showSnackBar(
+                      const SnackBar(content: Text('Claim accepted!')),
+                    );
+
+                    // Step 2 — create the chat
+                    final chatId = await messageProvider.getOrCreateChat(
+                      claim.claimerId,
+                      claim.claimerName,
+                      item.id,
+                      item.itemName,
+                      claim.claimerName,
+                    );
+
+                    // Step 3 — guard against null chatId
+                    if (chatId == null) {
+                      messenger.showSnackBar(
+                        const SnackBar(content: Text('Could not create chat.')),
                       );
+                      return;
                     }
+
+                    // Step 4 — send message BEFORE navigating
+                    await messageProvider.sendMessage(
+                      chatId,
+                      'Hello! I have accepted your claim for "${item.itemName}". Please let me know when you would like to pick it up.',
+                    );
+
+                    // Step 5 — navigate
+                    navigator.push(
+                      MaterialPageRoute(
+                        builder: (_) => ChatPage(
+                          chatId: chatId,
+                          currentUserId: authProvider.user!.uid,
+                          otherUserName: claim.claimerName,
+                          itemName: item.itemName,
+                        ),
+                      ),
+                    );
                   } catch (e) {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(SnackBar(content: Text('Error: $e')));
-                    }
+                    messenger.showSnackBar(
+                      SnackBar(content: Text('Error: $e')),
+                    );
                   }
                 },
                 style: OutlinedButton.styleFrom(
@@ -548,18 +593,20 @@ Widget _buildClaimCard(
                 // todo: implement reject functionality
                 // completed 01:10 18/05/2026
                 onPressed: () async {
+                  final messenger = ScaffoldMessenger.of(context);
+
                   try {
                     await postingProvider.rejectClaim(claim.id);
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
+                      messenger.showSnackBar(
                         const SnackBar(content: Text('Claim rejected')),
                       );
                     }
                   } catch (e) {
                     if (context.mounted) {
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+                      messenger.showSnackBar(
+                        SnackBar(content: Text('Error: $e')),
+                      );
                     }
                   }
                 },
