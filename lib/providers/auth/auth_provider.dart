@@ -31,12 +31,33 @@ class AuthProvider extends ChangeNotifier {
   void onAuthStateChanged(firebase_auth.User? firebaseUser) {
     if (firebaseUser != null) {
       // means user is logged in
-      user = User(uid: firebaseUser.uid, email: firebaseUser.email ?? '');
+      // fetch full user document from firestore
+      loadUserFromFirestore(firebaseUser.uid);
     } else {
       user = null;
+      notifyListeners();
     }
+  }
 
-    notifyListeners();
+  Future<void> loadUserFromFirestore(String uid) async {
+    try {
+      final userDoc = await firestore.collection('users').doc(uid).get();
+
+      if (userDoc.exists) {
+        user = User.fromMap({
+          ...userDoc.data() ?? {},
+          'uid': uid,
+        });
+      } else {
+        // fallback if doc doesnt exist
+        user = User(uid: uid, email: '');
+      }
+      notifyListeners();
+    } catch (e) {
+      setError('Error loading user: $e');
+      user = User(uid: uid, email: '');
+      notifyListeners();
+    }
   }
 
   // signup

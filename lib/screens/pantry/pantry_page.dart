@@ -1,5 +1,4 @@
 import 'package:elbi_eats/screens/pantry/item_detail_page.dart';
-import 'package:elbi_eats/screens/pantry/post_item_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
