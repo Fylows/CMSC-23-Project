@@ -6,6 +6,7 @@ import 'package:elbi_eats/screens/pantry/post_item_page.dart';
 import 'package:elbi_eats/screens/profile/profile_page.dart';
 import 'package:elbi_eats/screens/profile/order_transactions_page.dart';
 import 'package:elbi_eats/screens/profile/posted_items_page.dart';
+import 'package:elbi_eats/services/notification_service.dart';
 import 'package:elbi_eats/widgets/navbar.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -18,10 +19,14 @@ import 'screens/leaderboard/leaderboard.dart';
 import 'package:elbi_eats/providers/leaderboard/leaderboard_provider.dart';
 import 'package:elbi_eats/screens/messaging/chatlist_page.dart';
 import 'package:elbi_eats/providers/message/message_provider.dart';
+import 'package:elbi_eats/services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // initialize notifs
+  await NotificationService().initialize();
 
   runApp(const MyApp());
 }
