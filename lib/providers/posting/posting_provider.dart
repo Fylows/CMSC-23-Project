@@ -13,12 +13,20 @@ class PostingProvider extends ChangeNotifier {
   // user's own postings
   List<PostedItem> userPostings = [];
 
+  // list of claims of a user
+  List<Claim> myClaims = [];
+
   // state tracking
   bool isLoading = false;
   String? errorMessage;
 
   // streams
   late Stream<List<PostedItem>> availablePostingsStream;
+
+  /// get ALL postings stream
+  Stream<List<PostedItem>> getAllPostingsStream() {
+    return postingService.getAllPostings();
+  }
 
   /// get available postings stream
   Stream<List<PostedItem>> getAvailablePostingsStream() {
@@ -51,9 +59,20 @@ class PostingProvider extends ChangeNotifier {
     clearError();
 
     try {
+      // fetch full name from firestore users collection
+      final userDoc = await postingService.firestore
+        .collection('users')
+        .doc(currentUser.uid)
+        .get();
+
+      
+      final firstName = userDoc.data()?['firstname'] ?? 'Anonymous';
+      final lastName = userDoc.data()?['lastName'] ?? '';
+      final fullName = '$firstName $lastName'.trim();
+
       final posting = await postingService.createPosting(
         posterId: currentUser.uid, 
-        posterName: currentUser.displayName ?? '${currentUser.firstName} ${currentUser.lastName}', 
+        posterName: fullName, 
         posterVerified: currentUser.isVerified, 
         itemName: itemName, 
         description: description, 
@@ -123,6 +142,77 @@ class PostingProvider extends ChangeNotifier {
       rethrow;
     } finally {
       setLoading(false);
+    }
+  }
+
+  /// create a claim
+  Future<void> createClaim(String postingId, String claimerId, String claimerName) async {
+    try {
+      await postingService.createClaim(postingId, claimerId, claimerName);
+    } catch (e) {
+      errorMessage = e.toString();
+      notifyListeners();
+    }
+  }
+
+  /// accept a claim
+  Future<void> acceptClaim(String claimId, String postingId, String claimerId) async {
+    try {
+      isLoading = true;
+      notifyListeners();
+
+      await postingService.acceptClaim(claimId, postingId, claimerId);
+
+      isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      errorMessage = e.toString();
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// complete a claim
+  Future<void> completeClaim(String postingId, String claimId) async {
+    try {
+      isLoading = true;
+      notifyListeners();
+
+      await postingService.completeClaim(postingId, claimId);
+
+      isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      errorMessage = e.toString();
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// reject a claim
+  Future<void> rejectClaim(String claimId) async {
+    try {
+      await postingService.rejectClaim(claimId);
+      notifyListeners();
+    } catch (e) {
+      errorMessage = e.toString();
+      notifyListeners();
+    }
+  }
+
+  Stream<List<Claim>> getUserClaimsStream(String claimerId) {
+    return postingService.getUserClaims(claimerId);
+  }
+
+  Stream<List<Claim>> getClaimsForPostingStream(String postingId) {
+    return postingService.getClaimsForPosting(postingId);
+  }
+
+  Future<bool> userHasExistingClaim(String postingId, String claimerId) async {
+    try {
+      return await postingService.userHasExistingClaim(postingId, claimerId);
+    } catch (e) {
+      return false;
     }
   }
 
