@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:elbi_eats/providers/auth/auth_provider.dart';
-import '../auth/auth_wrapper.dart';
-
-import 'package:elbi_eats/widgets/searchbar.dart';
 import 'package:elbi_eats/widgets/product_card.dart';
 import 'package:elbi_eats/widgets/small_product_card.dart';
 import 'package:elbi_eats/widgets/leaderboard_bar.dart';
+import 'package:elbi_eats/screens/home/leaderboard_bar.dart';
+import 'package:provider/provider.dart';
+import 'package:elbi_eats/providers/leaderboard/leaderboard_provider.dart';
+import 'package:elbi_eats/providers/auth/auth_provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -16,17 +15,28 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _currentNavIndex = 0;
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final uid = context.read<AuthProvider>().user?.uid;
+      if (uid == null) return;
+      context.read<LeaderboardProvider>().loadLeaderboard(uid);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final leaderboard = context.watch<LeaderboardProvider>();
     return Scaffold(
       backgroundColor: const Color(0xFFF2F2F2),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(14),
         child: Column(
-          children: const [
-            _LeaderboardSection(),
+          children: [
+            _LeaderboardSection(
+              leaderboard: leaderboard,
+            ), // ← pass the provider here
             SizedBox(height: 14),
             _TopPicksSection(),
             SizedBox(height: 14),
@@ -131,8 +141,11 @@ class _PostedItemsSection extends StatelessWidget {
 }
 
 class _LeaderboardSection extends StatelessWidget {
-  const _LeaderboardSection();
+  final LeaderboardProvider leaderboard;
 
+  const _LeaderboardSection({required this.leaderboard});
+  final tempPfp =
+      'https://www.gravatar.com/avatar/?d=mp'; // ← grey silhouette, no face;
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -147,7 +160,6 @@ class _LeaderboardSection extends StatelessWidget {
       ),
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
             "This Week's Leaderboard",
@@ -158,33 +170,38 @@ class _LeaderboardSection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              LeaderboardBar(
-                imageUrl: 'https://i.pravatar.cc/150?img=47',
-                height: 80,
-                outlineColor: const Color(0xFFB0B0B0),
-                rank: 2,
-              ),
-              const SizedBox(width: 12),
-              LeaderboardBar(
-                imageUrl: 'https://i.pravatar.cc/150?img=12',
-                height: 110,
-                outlineColor: const Color(0xFFE8C84A),
-                rank: 1,
-                isCenter: true,
-              ),
-              const SizedBox(width: 12),
-              LeaderboardBar(
-                imageUrl: 'https://i.pravatar.cc/150?img=32',
-                height: 65,
-                outlineColor: const Color(0xFF6BC76B),
-                rank: 3,
-              ),
-            ],
-          ),
+          leaderboard.state.topThree.length >= 3
+              ? Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    LeaderboardBar(
+                      imageUrl:
+                          leaderboard.state.topThree[1].imageUrl ?? tempPfp,
+                      username: leaderboard.state.topThree[1].username,
+                      height: 80,
+                      rank: 2,
+                    ),
+                    const SizedBox(width: 12),
+                    LeaderboardBar(
+                      imageUrl:
+                          leaderboard.state.topThree[0].imageUrl ?? tempPfp,
+                      username: leaderboard.state.topThree[0].username,
+                      height: 110,
+                      rank: 1,
+                      isCenter: true,
+                    ),
+                    const SizedBox(width: 12),
+                    LeaderboardBar(
+                      imageUrl:
+                          leaderboard.state.topThree[2].imageUrl ?? tempPfp,
+                      username: leaderboard.state.topThree[2].username,
+                      height: 65,
+                      rank: 3,
+                    ),
+                  ],
+                )
+              : const Center(child: CircularProgressIndicator()),
         ],
       ),
     );

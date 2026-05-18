@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 
 class LeaderboardBar extends StatelessWidget {
   final String imageUrl;
+  final String username;
   final double height;
-  final Color outlineColor; // replaces barColor
   final int rank;
   final bool isCenter;
 
   const LeaderboardBar({
     super.key,
+    required this.username,
     required this.imageUrl,
     required this.height,
-    required this.outlineColor,
     required this.rank,
     this.isCenter = false,
   });
@@ -33,17 +33,25 @@ class LeaderboardBar extends StatelessWidget {
           height: isCenter ? 56 : 48,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(
-              color: outlineColor,
-              width: 2,
-            ), // uses outlineColor
+            border: Border.all(color: _barColor, width: 2),
             image: DecorationImage(
               image: NetworkImage(imageUrl),
               fit: BoxFit.cover,
             ),
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 4),
+        Text(
+          username, // ← add this
+          style: TextStyle(
+            fontSize: isCenter ? 13 : 11,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+          overflow: TextOverflow.ellipsis, // handles long usernames
+          maxLines: 1,
+        ),
+        const SizedBox(height: 4),
         Container(
           width: isCenter ? 70 : 58,
           height: height,
