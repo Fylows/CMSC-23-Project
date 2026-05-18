@@ -3,6 +3,7 @@ import 'package:elbi_eats/providers/auth/auth_provider.dart';
 import 'package:elbi_eats/providers/posting/posting_provider.dart';
 import 'package:elbi_eats/screens/pantry/pantry_page.dart';
 import 'package:elbi_eats/screens/pantry/post_item_page.dart';
+import 'package:elbi_eats/screens/cart/cart_page.dart';
 import 'package:elbi_eats/screens/profile/profile_page.dart';
 import 'package:elbi_eats/screens/profile/order_transactions_page.dart';
 import 'package:elbi_eats/screens/profile/posted_items_page.dart';
@@ -54,7 +55,7 @@ class MyApp extends StatelessWidget {
             return MainScaffold(child: PantryPage(initialSearch: args));
           },
           // '/chat' : (context) => const MainScaffold(currentRoute: '/chat', child: ChatScreen()),
-          // '/cart' : (context) => const MainScaffold(currentRoute: '/cart', child: CartScreen()),
+          '/cart': (context) => const MainScaffold(child: CartPage()),
 
           // --- DRAWER ---
           '/profile': (context) => const ProfilePage(),

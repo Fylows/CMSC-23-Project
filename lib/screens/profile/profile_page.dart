@@ -155,71 +155,87 @@ class _ProfilePageState extends State<ProfilePage> {
       context: context,
       barrierColor: Colors.transparent,
       builder: (context) {
-        return Stack(
-          children: [
-            Positioned(
-              top: offset.dy,
-              right: 20,
-              child: Material(
-                elevation: 8,
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  width: 250,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return Stack(
+              children: [
+                Positioned(
+                  top: offset.dy,
+                  right: 20,
+                  child: Material(
+                    elevation: 8,
                     borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _buildFilterOption('Date of Expiration', true),
-                      _buildFilterOption('Date of Uploaded Items', false),
-                      _buildFilterOption('Number of Stocks', false),
-                      _buildFilterOption('Alphabetical Order', false),
-                      const Divider(),
-                      Row(
+                    child: Container(
+                      width: 250,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Radio<bool>(
-                            value: true,
-                            groupValue: isAscending,
-                            activeColor: const Color(0xFFCB2020),
-                            onChanged: (val) {
-                              setState(() => isAscending = val!);
-                              Navigator.pop(context);
-                            },
-                          ),
-                          const Text(
-                            'Ascending',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Color(0xFFCB2020),
-                            ),
-                          ),
-                          Radio<bool>(
-                            value: false,
-                            groupValue: isAscending,
-                            activeColor: const Color(0xFFCB2020),
-                            onChanged: (val) {
-                              setState(() => isAscending = val!);
-                              Navigator.pop(context);
-                            },
-                          ),
-                          const Text(
-                            'Descending',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Color(0xFFCB2020),
+                          _buildFilterOption('Date of Expiration', true),
+                          _buildFilterOption('Date of Uploaded Items', false),
+                          _buildFilterOption('Number of Stocks', false),
+                          _buildFilterOption('Alphabetical Order', false),
+                          const Divider(),
+                          Padding(
+                            padding: const EdgeInsets.only(right: 20), // Adjust to prevent overflow
+                            child: Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    Radio<bool>(
+                                      value: true,
+                                      groupValue: isAscending,
+                                      activeColor: const Color(0xFFCB2020),
+                                      onChanged: (val) {
+                                        setDialogState(() => isAscending = val!);
+                                        setState(() {});
+                                      },
+                                    ),
+                                    const Text(
+                                      'Ascending',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Color(0xFFCB2020),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Row(
+                                  children: [
+                                    Radio<bool>(
+                                      value: false,
+                                      groupValue: isAscending,
+                                      activeColor: const Color(0xFFCB2020),
+                                      onChanged: (val) {
+                                        setDialogState(() => isAscending = val!);
+                                        setState(() {});
+                                      },
+                                    ),
+                                    const Text(
+                                      'Descending',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Color(0xFFCB2020),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
-            ),
-          ],
+              ],
+            );
+          }
         );
       },
     );
