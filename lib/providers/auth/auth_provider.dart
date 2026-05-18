@@ -165,6 +165,30 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  /// update verification status of a user
+  Future<void> updateUserVerification(String verificationSelfieUrl) async {
+    try {
+      if (user == null) throw Exception('User not authenticated');
+
+      await firestore.collection('users').doc(user!.uid).update({
+        'isVerified': true,
+        'verificationSelfieUrl': verificationSelfieUrl,
+      });
+
+      // update local user object
+      final updatedUser = user!.copyWith(
+        isVerified: true,
+        verificationSelfieUrl: verificationSelfieUrl,
+      );
+
+      user = updatedUser;
+      notifyListeners();
+    } catch (e) {
+      setError('Error updating verification: $e');
+      rethrow;
+    }
+  }
+
   // ==== HELPER METHODS ====
   void setLoading(bool value) {
     isLoading = value;
