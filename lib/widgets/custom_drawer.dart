@@ -65,7 +65,12 @@ class CustomDrawer extends StatelessWidget {
               context,
               icon: Icons.leaderboard_outlined,
               title: 'Leaderboards',
-              onTap: () {},
+              onTap: () {
+                Navigator.pop(context);
+                if (ModalRoute.of(context)?.settings.name != '/leaderboard') {
+                  Navigator.pushNamed(context, '/leaderboard');
+                }
+              },
             ),
             _buildDrawerItem(
               context,
