@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
 import 'dart:io';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/posting/posting_provider.dart';
@@ -14,19 +13,18 @@ class PostItemPage extends StatefulWidget {
 }
 
 class _PostItemPageState extends State<PostItemPage> {
-  // form controllers
   final itemNameController = TextEditingController();
   final descriptionController = TextEditingController();
+  final stockController = TextEditingController(text: '0');
 
-  // image picker
   File? selectedImage;
   final ImagePicker _imagePicker = ImagePicker();
 
-  // date picker
-  DateTime? expirationDate;
-
-  // tag selector
   final List<String> allTags = [
+    'Meat',
+    'Veggies',
+    'Fastfood',
+    'Fish',
     'vegan',
     'cafes',
     'gluten-free',
@@ -48,509 +46,303 @@ class _PostItemPageState extends State<PostItemPage> {
   ];
   Set<String> selectedTags = {};
 
-  // validation errors
-  String? itemNameError;
-  String? descriptionError;
-  String? photoError;
-  String? dateError;
-
-  @override
-  void dispose() {
-    itemNameController.dispose();
-    descriptionController.dispose();
-    super.dispose();
-  }
-
-  /// pick image from camera or gallery
-  Future<void> pickImage(ImageSource source) async {
-    try {
-      final pickedFile = await _imagePicker.pickImage(source: source);
-      if (pickedFile != null) {
-        setState(() {
-          selectedImage = File(pickedFile.path);
-          photoError = null;
-        });
-      }
-    } catch (e) {
+  Future<void> pickImage() async {
+    final pickedFile = await _imagePicker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
       setState(() {
-        photoError = 'Failed to pick image $e';
+        selectedImage = File(pickedFile.path);
       });
     }
   }
 
-  /// show image picker modal
-  void showImagePickerModal() {
-    showModalBottomSheet(
-      context: context, 
-      builder: (context) => Container(
-        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Pick Item Photo',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+  void _showTextEditDialog(String title, TextEditingController controller, {bool isNumeric = false}) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Enter $title...'),
+          content: TextField(
+            controller: controller,
+            keyboardType: isNumeric ? TextInputType.number : TextInputType.multiline,
+            maxLines: isNumeric ? 1 : null,
+            decoration: InputDecoration(
+              hintText: 'Type $title here',
             ),
-            const SizedBox(height: 20),
-            ListTile(
-              leading: const Icon(Icons.camera_alt, color: Color(0xFFFA5800)),
-              title: const Text('Take Photo'),
-              onTap: () {
-                Navigator.pop(context);
-                pickImage(ImageSource.camera);
-              },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
             ),
-            ListTile(
-              leading: const Icon(Icons.photo_library, color: Color(0xFFFA5800)),
-              title: const Text('Choose from Gallery'),
-              onTap: () {
+            ElevatedButton(
+              onPressed: () {
+                setState(() {});
                 Navigator.pop(context);
-                pickImage(ImageSource.gallery);
               },
+              child: const Text('Done'),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  /// Open date picker
-  Future<void> selectExpirationDate() async {
-    final DateTime? picked = await showDatePicker(
-      context: context, 
-      initialDate: expirationDate ?? DateTime.now().add(Duration(days: 1)),
-      firstDate: DateTime.now(), 
-      lastDate: DateTime.now().add(Duration(days: 365)),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(primary: Color(0xFFFA5800))
-          ), 
-          child: child!,
         );
       },
     );
-    
-    if (picked != null && picked != expirationDate) {
-      setState(() {
-        expirationDate = picked;
-        dateError = null;
-      });
-    }
   }
 
-  /// toggle tag selection
-  void toggleTag(String tag) {
-    setState(() {
-      if (selectedTags.contains(tag)) {
-        selectedTags.remove(tag);
-      } else {
-        selectedTags.add(tag);
-      }
-    });
-  }
-
-  /// validate form inputs
-  bool validateInputs() {
-    setState(() {
-      itemNameError = null;
-      descriptionError = null;
-      photoError = null;
-      dateError = null;
-    });
-
-    bool isValid = true;
-
-    // item name validation
-    if (itemNameController.text.isEmpty) {
-      setState(() {
-        itemNameError = 'Item name is required';
-      });
-      isValid = false;
-    } else if (itemNameController.text.length < 3) {
-      setState(() {
-        itemNameError = 'Item name must be at least 3 characters';
-      });
-      isValid = false;
-    }
-
-    // description validation
-    if (descriptionController.text.isEmpty) {
-      setState(() {
-        descriptionError = 'Description is required';
-      });
-      isValid = false;
-    } else if (descriptionController.text.length < 10) {
-      setState(() {
-        descriptionError = 'Description must be at least 10 characters';
-      });
-      isValid = false;
-    }
-
-    // photo validation
-    if (selectedImage == null) {
-      setState(() {
-        photoError = 'Please select a photo';
-      });
-      isValid = false;
-    }
-
-    // expiration date validation
-    if (expirationDate == null) {
-      setState(() {
-        dateError = 'Expiration date is required';
-      });
-      isValid = false;
-    }
-
-    return isValid;
-  }
-
-  /// handle form submission
-  Future<void> handleSubmit() async {
-    if (!validateInputs()) {
-      return;
-    }
-
-    final authProvider = context.read<AuthProvider>();
-    final postingProvider = context.read<PostingProvider>();
-
-    if (authProvider.user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('You must be logged in to post items'))
-      );
-      return;
-    }
-
-    try {
-      await postingProvider.createPosting(
-        currentUser: authProvider.user!, 
-        itemName: itemNameController.text.trim(), 
-        description: descriptionController.text.trim(), 
-        photoFile: selectedImage, 
-        selectedTags: selectedTags.toList(), 
-        expirationDate: expirationDate!,
-      );
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Item posted successfully!')),
+  void _showTagsDialog() {
+    String searchQuery = "";
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final filteredTags = allTags.where((t) => t.toLowerCase().contains(searchQuery.toLowerCase())).toList();
+            return AlertDialog(
+              title: TextField(
+                decoration: const InputDecoration(
+                  hintText: 'Enter item name...', // Based on Image 3
+                  border: UnderlineInputBorder(),
+                ),
+                onChanged: (val) {
+                  setDialogState(() => searchQuery = val);
+                },
+              ),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: SingleChildScrollView(
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: filteredTags.map((tag) {
+                      final isSelected = selectedTags.contains(tag);
+                      return GestureDetector(
+                        onTap: () {
+                          setDialogState(() {
+                            if (isSelected) {
+                              selectedTags.remove(tag);
+                            } else {
+                              selectedTags.add(tag);
+                            }
+                          });
+                          setState(() {}); // Update main screen
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: isSelected ? Colors.yellow[200] : Colors.white,
+                            border: Border.all(color: Colors.black),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(tag),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
+              actions: [
+                Center(
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey[300],
+                      foregroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    ),
+                    child: const Text('Done'),
+                  ),
+                ),
+              ],
+            );
+          }
         );
-        Navigator.pop(context);
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error posting item: $e'))
-      );
-    }
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<PostingProvider>(
-      builder: (context, postingProvider, _) {
-        return Scaffold(
-          appBar: AppBar(
-            backgroundColor: Colors.white,
-            elevation: 0,
-            leading: IconButton(
-              onPressed: () => Navigator.pop(context), 
-              icon: const Icon(Icons.arrow_back, color: Colors.black),
-            ),
-            title: const Text(
-              'Post an Item',
-              style: TextStyle(
-                color: Color(0xFFCB2020),
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            centerTitle: true,
-            bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(1), 
-              child: Container(color: Colors.grey[300], height: 1),
-            ),
-          ),
-          body: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ===== ITEM NAME =====
-                const Text(
-                  'Item Name',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: itemNameController,
-                  enabled: !postingProvider.isLoading,
-                  decoration: InputDecoration(
-                    hintText: 'e.g., 3 Extra Eggs',
-                    errorText: itemNameError,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(
-                        color: Color(0xFFFA5800),
-                        width: 2,
-                      ),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
+    final authProvider = Provider.of<AuthProvider>(context);
+    final user = authProvider.user;
 
-                // ===== DESCRIPTION =====
-                const Text(
-                  'Description',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: descriptionController,
-                  enabled: !postingProvider.isLoading,
-                  maxLines: 4,
-                  decoration: InputDecoration(
-                    hintText: 'Describe the item, quality, and any special notes',
-                    errorText: descriptionError,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(
-                        color: Color(0xFFFA5800),
-                        width: 2,
-                      ),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // ===== PHOTO =====
-                const Text(
-                  'Item Photo',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                ),
-                const SizedBox(height: 8),
-                GestureDetector(
-                  onTap: postingProvider.isLoading ? null : showImagePickerModal,
-                  child: Container(
-                    height: 150,
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: photoError != null
-                            ? Colors.red
-                            : Colors.grey.shade300,
-                        width: 1.5,
-                      ),
-                      borderRadius: BorderRadius.circular(8),
-                      color: Colors.grey.shade50,
-                    ),
-                    child: selectedImage != null
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.file(
-                              selectedImage!,
-                              fit: BoxFit.cover,
+    return Scaffold(
+      backgroundColor: const Color(0xFFFDFDFD),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // --- Header Image Area ---
+                    Stack(
+                      children: [
+                        GestureDetector(
+                          onTap: pickImage,
+                          child: Container(
+                            height: 300,
+                            width: double.infinity,
+                            color: Colors.grey[600],
+                            child: selectedImage != null
+                                ? Image.file(selectedImage!, fit: BoxFit.cover)
+                                : Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: const [
+                                      Icon(Icons.camera_alt_outlined, size: 80, color: Colors.white),
+                                      SizedBox(height: 10),
+                                      Text('Add picture', style: TextStyle(color: Colors.white, fontSize: 18)),
+                                    ],
+                                  ),
+                          ),
+                        ),
+                        Positioned(
+                          top: 10,
+                          left: 10,
+                          child: CircleAvatar(
+                            backgroundColor: Colors.white.withValues(alpha: 0.5),
+                            child: IconButton(
+                              icon: const Icon(Icons.arrow_back, color: Colors.black),
+                              onPressed: () => Navigator.pop(context),
                             ),
-                          )
-                        : Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    // --- Content ---
+                    Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          GestureDetector(
+                            onTap: () => _showTextEditDialog('item name', itemNameController),
+                            child: Text(
+                              itemNameController.text.isEmpty ? 'Item name' : itemNameController.text,
+                              style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Icon(
-                                Icons.camera_alt,
-                                size: 40,
-                                color: Colors.grey.shade400,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Tap to add photo',
-                                style: TextStyle(
-                                  color: Colors.grey.shade600,
-                                  fontSize: 14,
+                              Expanded(
+                                child: Text(
+                                  selectedTags.isEmpty ? 'Tags go here.' : selectedTags.join(', '),
+                                  style: TextStyle(color: Colors.grey[600], fontSize: 14),
                                 ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.edit_outlined),
+                                onPressed: _showTagsDialog,
                               ),
                             ],
                           ),
-                  ),
-                ),
-                if (photoError != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Text(
-                      photoError!,
-                      style: const TextStyle(
-                        color: Colors.red,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                const SizedBox(height: 20),
-
-                // ===== EXPIRATION DATE =====
-                const Text(
-                  'Expiration Date',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                ),
-                const SizedBox(height: 8),
-                GestureDetector(
-                  onTap: postingProvider.isLoading ? null : selectExpirationDate,
-                  child: TextField(
-                    enabled: false,
-                    decoration: InputDecoration(
-                      hintText: 'DD/MM/YYYY',
-                      errorText: dateError,
-                      suffixIcon: Icon(
-                        Icons.calendar_today,
-                        color: Colors.grey.shade600,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                    ),
-                    controller: TextEditingController(
-                      text: expirationDate != null
-                          ? DateFormat('dd/MM/yyyy').format(expirationDate!)
-                          : '',
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // ===== TAGS =====
-                const Text(
-                  'Select Tags (optional)',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                ),
-                const SizedBox(height: 8),
-                GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    crossAxisSpacing: 5,
-                    mainAxisSpacing: 5,
-                    childAspectRatio: 1.8,
-                  ),
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: allTags.length,
-                  itemBuilder: (context, index) {
-                    final tag = allTags[index];
-                    final isSelected = selectedTags.contains(tag);
-
-                    return GestureDetector(
-                      onTap: postingProvider.isLoading
-                          ? null
-                          : () => toggleTag(tag),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? const Color(0xFFFA5800)
-                              : Colors.white,
-                          border: Border.all(
-                            color: isSelected
-                                ? const Color(0xFFFA5800)
-                                : Colors.grey.shade300,
-                            width: 1.5,
+                          const Divider(),
+                          ListTile(
+                            leading: const Icon(Icons.person_outline),
+                            title: Text('Seller: ${user?.displayName ?? 'Anonymous'}'),
+                            contentPadding: EdgeInsets.zero,
                           ),
-                          borderRadius: BorderRadius.circular(18),
-                        ),
-                        child: Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
+                          const Divider(),
+                          GestureDetector(
+                            onTap: () => _showTextEditDialog('stock', stockController, isNumeric: true),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text('Stock', style: TextStyle(fontWeight: FontWeight.bold)),
+                                Text(stockController.text),
+                              ],
+                            ),
+                          ),
+                          const Divider(),
+                          const Text('Description', style: TextStyle(fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 5),
+                          GestureDetector(
+                            onTap: () => _showTextEditDialog('description', descriptionController),
                             child: Text(
-                              tag,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: isSelected
-                                    ? Colors.white
-                                    : Colors.black87,
-                              ),
+                              descriptionController.text.isEmpty ? 'Write Something...' : descriptionController.text,
+                              style: TextStyle(color: Colors.grey[600]),
                             ),
                           ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 40),
-
-                // ===== SUBMIT BUTTON =====
-                if (postingProvider.isLoading)
-                  const Center(child: CircularProgressIndicator())
-                else
-                  ElevatedButton(
-                    onPressed: handleSubmit,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFA5800),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text(
-                            'Post Item',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
+                          const SizedBox(height: 40),
+                          // --- Location Placeholder ---
+                          const Row(
+                            children: [
+                              Icon(Icons.location_on),
+                              SizedBox(width: 5),
+                              Text('Location', style: TextStyle(fontWeight: FontWeight.bold)),
+                            ],
                           ),
-                          const SizedBox(width: 8),
-                          const Icon(Icons.upload, color: Colors.white),
+                          const SizedBox(height: 10),
+                          Container(
+                            height: 150,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: Colors.green[50],
+                              border: Border.all(color: Colors.grey[300]!),
+                            ),
+                            child: Center(child: Icon(Icons.map, color: Colors.green[200], size: 50)),
+                          ),
                         ],
                       ),
                     ),
-                  ),
+                  ],
+                ),
+              ),
+            ),
 
-                // ===== ERROR MESSAGE =====
-                if (postingProvider.errorMessage != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16),
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.red.shade50,
-                        border: Border.all(color: Colors.red.shade200),
-                        borderRadius: BorderRadius.circular(8),
+            // --- Bottom Buttons ---
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              color: const Color(0xFFCB2020),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        if (itemNameController.text.isEmpty || selectedImage == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Please add an image and item name')),
+                          );
+                          return;
+                        }
+                        final postingProvider = Provider.of<PostingProvider>(context, listen: false);
+                        await postingProvider.createPosting(
+                          currentUser: user!,
+                          itemName: itemNameController.text,
+                          description: descriptionController.text,
+                          photoFile: selectedImage,
+                          selectedTags: selectedTags.toList(),
+                          expirationDate: DateTime.now().add(const Duration(days: 7)), // Default
+                        );
+                        if (mounted) Navigator.pop(context);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF6BBF6B),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       ),
-                      child: Text(
-                        postingProvider.errorMessage!,
-                        style: TextStyle(color: Colors.red.shade800),
-                      ),
+                      child: const Text('Save'),
                     ),
                   ),
-
-                const SizedBox(height: 20),
-              ],
+                  const SizedBox(width: 20),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFE67E22),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      child: const Text('Cancel'),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        );
-      }
+          ],
+        ),
+      ),
     );
   }
 }

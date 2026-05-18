@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:elbi_eats/providers/auth/auth_provider.dart';
 import 'package:elbi_eats/widgets/custom_drawer.dart';
 import 'package:intl/intl.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import '../../models/item_model.dart';
 import 'order_transactions_page.dart';
 
@@ -16,12 +18,107 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   bool isEditing = false;
   bool isAscending = true;
+  bool localHideTransactions = false;
+  
+  late TextEditingController _nameController;
+  File? _pickedImage;
+  final ImagePicker _picker = ImagePicker();
+
+  // Scroll controllers for horizontal sections to sync with progress indicator
+  final ScrollController _postedItemsScrollController = ScrollController();
+  final ScrollController _transactionsScrollController = ScrollController();
+  
+  double _postedItemsProgress = 0.0;
+  double _transactionsProgress = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController();
+    
+    // Initialize state from provider
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final user = context.read<AuthProvider>().user;
+      if (user != null) {
+        setState(() {
+          _nameController.text = user.displayName ?? 'Real Name';
+          localHideTransactions = user.hideTransactions;
+        });
+      }
+    });
+
+    _postedItemsScrollController.addListener(() {
+      if (_postedItemsScrollController.hasClients && _postedItemsScrollController.position.maxScrollExtent > 0) {
+        setState(() {
+          _postedItemsProgress = _postedItemsScrollController.offset / 
+            _postedItemsScrollController.position.maxScrollExtent;
+        });
+      }
+    });
+    _transactionsScrollController.addListener(() {
+      if (_transactionsScrollController.hasClients && _transactionsScrollController.position.maxScrollExtent > 0) {
+        setState(() {
+          _transactionsProgress = _transactionsScrollController.offset / 
+            _transactionsScrollController.position.maxScrollExtent;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _postedItemsScrollController.dispose();
+    _transactionsScrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      setState(() {
+        _pickedImage = File(image.path);
+      });
+    }
+  }
+
+  void _showNameEditDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Enter shown name...'),
+          content: TextField(
+            controller: _nameController,
+            maxLength: 15,
+            decoration: const InputDecoration(
+              hintText: 'Real Name',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {}); // Trigger rebuild to show new name in UI
+                Navigator.pop(context);
+              },
+              child: const Text('Done'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   // Dummy data for demonstration
   final List<PostedItem> postedItems = [
     PostedItem(id: '1', name: 'Hotdog', expirationDate: DateTime(2026, 4, 30)),
     PostedItem(id: '2', name: 'Rice', expirationDate: DateTime(2026, 5, 3)),
     PostedItem(id: '3', name: 'Fish', expirationDate: DateTime(2026, 5, 26)),
+    PostedItem(id: '4', name: 'Egg', expirationDate: DateTime(2026, 6, 1)),
   ];
 
   final List<OrderTransaction> transactions = [
@@ -43,9 +140,17 @@ class _ProfilePageState extends State<ProfilePage> {
       quantity: '1kg',
       status: 'Completed',
     ),
+    OrderTransaction(
+      id: '4',
+      name: 'Coke',
+      quantity: '1.5L',
+      status: 'Completed',
+    ),
   ];
 
   void _showFilterPopup(BuildContext context, Offset offset) {
+    if (isEditing) return; // Filters removed when editing
+
     showDialog(
       context: context,
       barrierColor: Colors.transparent,
@@ -75,43 +180,36 @@ class _ProfilePageState extends State<ProfilePage> {
                       const Divider(),
                       Row(
                         children: [
-                          RadioGroup<bool>(
+                          Radio<bool>(
+                            value: true,
                             groupValue: isAscending,
-                            onChanged: (bool? val) {
-                              setState(() {
-                                isAscending = val ?? true;
-                              });
+                            activeColor: const Color(0xFFCB2020),
+                            onChanged: (val) {
+                              setState(() => isAscending = val!);
+                              Navigator.pop(context);
                             },
-                            child: Row(
-                              children: [
-                                // First Radio Button (Ascending)
-                                Radio<bool>(
-                                  value: true,
-                                  activeColor: const Color(0xFFCB2020),
-                                  // groupValue and onChanged are removed!
-                                ),
-                                const Text(
-                                  'Ascending',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Color(0xFFCB2020),
-                                  ),
-                                ),
-
-                                // Second Radio Button (Descending)
-                                Radio<bool>(
-                                  value: false,
-                                  activeColor: const Color(0xFFCB2020),
-                                  // groupValue and onChanged are removed!
-                                ),
-                                const Text(
-                                  'Descending',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Color(0xFFCB2020),
-                                  ),
-                                ),
-                              ],
+                          ),
+                          const Text(
+                            'Ascending',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFFCB2020),
+                            ),
+                          ),
+                          Radio<bool>(
+                            value: false,
+                            groupValue: isAscending,
+                            activeColor: const Color(0xFFCB2020),
+                            onChanged: (val) {
+                              setState(() => isAscending = val!);
+                              Navigator.pop(context);
+                            },
+                          ),
+                          const Text(
+                            'Descending',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFFCB2020),
                             ),
                           ),
                         ],
@@ -184,64 +282,102 @@ class _ProfilePageState extends State<ProfilePage> {
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Row(
                 children: [
-                  Stack(
-                    children: [
-                      CircleAvatar(
-                        radius: 55,
-                        backgroundColor: Colors.grey[300],
-                        child: const Icon(
-                          Icons.person,
-                          size: 70,
-                          color: Colors.white,
-                        ),
-                      ),
-                      if (isEditing)
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFFA5800),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.add,
-                              color: Colors.white,
-                              size: 20,
-                            ),
+                  // --- Left Column: Profile Picture ---
+                  Expanded(
+                    child: Center(
+                      child: Stack(
+                        children: [
+                          CircleAvatar(
+                            radius: 80,
+                            backgroundColor: Colors.grey[300],
+                            backgroundImage: _pickedImage != null
+                                ? FileImage(_pickedImage!)
+                                : (user?.profilePictureUrl != null
+                                    ? NetworkImage(user!.profilePictureUrl!)
+                                    : null) as ImageProvider?,
+                            child: _pickedImage == null &&
+                                    user?.profilePictureUrl == null
+                                ? const Icon(
+                                    Icons.person,
+                                    size: 100,
+                                    color: Colors.white,
+                                  )
+                                : null,
                           ),
-                        ),
-                    ],
+                          if (isEditing)
+                            Positioned(
+                              bottom: 5,
+                              right: 5,
+                              child: GestureDetector(
+                                onTap: _pickImage,
+                                child: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFFA5800),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.add,
+                                    color: Colors.white,
+                                    size: 24,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
                   ),
-                  const SizedBox(width: 20),
+
+                  // --- Right Column: User Info ---
                   Expanded(
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Row(
-                          children: [
-                            Text(
+                        if (isEditing)
+                          GestureDetector(
+                            onTap: _showNameEditDialog,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Flexible(
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      _nameController.text.isEmpty ? (user?.displayName ?? 'Real Name') : _nameController.text,
+                                      style: const TextStyle(
+                                        fontSize: 28,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFFCB2020),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                const Icon(
+                                  Icons.edit_outlined,
+                                  color: Color(0xFFCB2020),
+                                  size: 24,
+                                ),
+                              ],
+                            ),
+                          )
+                        else
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
                               user?.displayName ?? 'Real Name',
                               style: const TextStyle(
-                                fontSize: 24,
+                                fontSize: 28,
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xFFCB2020),
                               ),
                             ),
-                            if (isEditing)
-                              const Padding(
-                                padding: EdgeInsets.only(left: 8.0),
-                                child: Icon(
-                                  Icons.edit_outlined,
-                                  color: Color(0xFFCB2020),
-                                  size: 20,
-                                ),
-                              ),
-                          ],
-                        ),
+                          ),
                         Text(
                           '@${user?.username ?? user?.email?.split('@')[0] ?? 'username'}',
+                          textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 16,
                             color: const Color(
@@ -249,28 +385,29 @@ class _ProfilePageState extends State<ProfilePage> {
                             ).withValues(alpha: 0.6),
                           ),
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 15),
                         Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             const Icon(
                               Icons.emoji_events,
                               color: Color(0xFFFA5800),
-                              size: 40,
+                              size: 45,
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: 15),
                             Container(
                               width: 1.5,
-                              height: 30,
+                              height: 35,
                               color: Colors.grey[400],
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: 15),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   '${user?.contributorScore ?? 67}',
                                   style: const TextStyle(
-                                    fontSize: 28,
+                                    fontSize: 32,
                                     fontWeight: FontWeight.bold,
                                     color: Color(0xFFFA5800),
                                   ),
@@ -278,7 +415,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 const Text(
                                   'Contributor',
                                   style: TextStyle(
-                                    fontSize: 12,
+                                    fontSize: 14,
                                     color: Color(0xFFFA5800),
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -304,10 +441,14 @@ class _ProfilePageState extends State<ProfilePage> {
               onFilterTap: (offset) => _showFilterPopup(context, offset),
               showAddIcon: isEditing,
               onTitleTap: () => Navigator.pushNamed(context, '/posted-items'),
+              scrollController: _postedItemsScrollController,
+              progress: _postedItemsProgress,
+              onAddTap: () => Navigator.pushNamed(context, '/post-item'),
             ),
             const SizedBox(height: 20),
 
             // --- Your Order Transactions Section ---
+            if (!user!.hideTransactions || isEditing)
             _buildSection(
               title: 'Your Order Transactions',
               items: transactions.map((t) => _buildTransactionCard(t)).toList(),
@@ -315,6 +456,9 @@ class _ProfilePageState extends State<ProfilePage> {
               showVisibilityIcon: isEditing,
               onTitleTap: () =>
                   Navigator.pushNamed(context, '/order-transactions'),
+              scrollController: _transactionsScrollController,
+              progress: _transactionsProgress,
+              isTransactions: true,
             ),
             const SizedBox(height: 40),
 
@@ -334,7 +478,13 @@ class _ProfilePageState extends State<ProfilePage> {
                     ],
                   ),
                   child: ElevatedButton(
-                    onPressed: () => setState(() => isEditing = true),
+                    onPressed: () {
+                      setState(() {
+                        isEditing = true;
+                        _nameController.text = user.displayName ?? 'Real Name';
+                        localHideTransactions = user.hideTransactions;
+                      });
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFFFD700),
                       foregroundColor: Colors.white,
@@ -372,7 +522,18 @@ class _ProfilePageState extends State<ProfilePage> {
                         ],
                       ),
                       child: ElevatedButton(
-                        onPressed: () => setState(() => isEditing = false),
+                        onPressed: () async {
+                          // Persistent Save
+                          await authProvider.saveUserProfile(
+                            firstName: _nameController.text.split(' ').first,
+                            lastName: _nameController.text.contains(' ') ? _nameController.text.split(' ').last : '',
+                            dateOfBirth: user.dateOfBirth ?? DateTime.now(),
+                            selectedTags: user.selectedTags ?? [],
+                            hideTransactions: localHideTransactions,
+                          );
+                          // TODO: Profile picture upload logic if _pickedImage != null
+                          setState(() => isEditing = false);
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.greenAccent[700],
                           foregroundColor: Colors.white,
@@ -403,7 +564,15 @@ class _ProfilePageState extends State<ProfilePage> {
                         ],
                       ),
                       child: ElevatedButton(
-                        onPressed: () => setState(() => isEditing = false),
+                        onPressed: () {
+                          // Discard Changes
+                          setState(() {
+                            isEditing = false;
+                            _pickedImage = null;
+                            _nameController.text = user.displayName ?? 'Real Name';
+                            localHideTransactions = user.hideTransactions;
+                          });
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.red,
                           foregroundColor: Colors.white,
@@ -439,12 +608,16 @@ class _ProfilePageState extends State<ProfilePage> {
     bool showAddIcon = false,
     bool showVisibilityIcon = false,
     VoidCallback? onTitleTap,
+    required ScrollController scrollController,
+    required double progress,
+    VoidCallback? onAddTap,
+    bool isTransactions = false,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFFFA5800), // Updated to the orange from prompt
+          color: const Color(0xFFFA5800),
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
@@ -475,23 +648,34 @@ class _ProfilePageState extends State<ProfilePage> {
                   Row(
                     children: [
                       if (showAddIcon)
-                        const Padding(
-                          padding: EdgeInsets.only(right: 12.0),
-                          child: Icon(
-                            Icons.add_circle,
-                            color: Colors.white,
-                            size: 24,
+                        Padding(
+                          padding: const EdgeInsets.only(right: 12.0),
+                          child: GestureDetector(
+                            onTap: onAddTap,
+                            child: const Icon(
+                              Icons.add_circle,
+                              color: Colors.white,
+                              size: 24,
+                            ),
                           ),
                         ),
                       if (showVisibilityIcon)
-                        const Padding(
-                          padding: EdgeInsets.only(right: 12.0),
-                          child: Icon(
-                            Icons.visibility_off,
-                            color: Colors.white,
-                            size: 24,
+                        Padding(
+                          padding: const EdgeInsets.only(right: 12.0),
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                localHideTransactions = !localHideTransactions;
+                              });
+                            },
+                            child: Icon(
+                              localHideTransactions ? Icons.visibility_off : Icons.visibility,
+                              color: Colors.white,
+                              size: 24,
+                            ),
                           ),
                         ),
+                      if (!isEditing)
                       GestureDetector(
                         onTapDown: (details) =>
                             onFilterTap(details.globalPosition),
@@ -507,18 +691,29 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ),
             SingleChildScrollView(
+              controller: scrollController,
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.only(left: 16, bottom: 16),
               child: Row(children: items),
             ),
-            // Progress indicator at the bottom (optional, but looks like it might be in figma)
+            // Progress indicator at the bottom
             Container(
               height: 4,
-              width: 80,
-              margin: const EdgeInsets.only(bottom: 8),
+              width: double.infinity,
+              margin: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.3),
+                color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(2),
+              ),
+              child: FractionallySizedBox(
+                alignment: Alignment.centerLeft,
+                widthFactor: progress.clamp(0.0, 1.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
               ),
             ),
           ],
@@ -552,7 +747,12 @@ class _ProfilePageState extends State<ProfilePage> {
             decoration: BoxDecoration(
               color: const Color(0xFFA35D5D),
               borderRadius: BorderRadius.circular(8),
+              image: item.imageUrl != null ? DecorationImage(
+                image: NetworkImage(item.imageUrl!),
+                fit: BoxFit.cover,
+              ) : null,
             ),
+            child: item.imageUrl == null ? const Icon(Icons.fastfood, color: Colors.white30) : null,
           ),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
@@ -608,7 +808,12 @@ class _ProfilePageState extends State<ProfilePage> {
             decoration: BoxDecoration(
               color: const Color(0xFFA35D5D),
               borderRadius: BorderRadius.circular(8),
+              image: transaction.imageUrl != null ? DecorationImage(
+                image: NetworkImage(transaction.imageUrl!),
+                fit: BoxFit.cover,
+              ) : null,
             ),
+            child: transaction.imageUrl == null ? const Icon(Icons.receipt, color: Colors.white30) : null,
           ),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
