@@ -3,9 +3,11 @@ import 'dart:io';
 import '../../models/posting_model.dart';
 import '../../models/user/user_model.dart';
 import '../../services/posting_service.dart';
+import '../message/message_provider.dart';
 
 class PostingProvider extends ChangeNotifier {
   final PostingService postingService = PostingService();
+  final MessageProvider messageProvider = MessageProvider();
 
   // available postings (for the home feed)
   List<PostedItem> availablePostings = [];
@@ -61,24 +63,26 @@ class PostingProvider extends ChangeNotifier {
     try {
       // fetch full name from firestore users collection
       final userDoc = await postingService.firestore
-        .collection('users')
-        .doc(currentUser.uid)
-        .get();
+          .collection('users')
+          .doc(currentUser.uid)
+          .get();
 
-      
-      final firstName = userDoc.data()?['firstname'] ?? userDoc.data()?['firstName'] ?? 'Anonymous';
+      final firstName =
+          userDoc.data()?['firstname'] ??
+          userDoc.data()?['firstName'] ??
+          'Anonymous';
       final lastName = userDoc.data()?['lastName'] ?? '';
       final fullName = '$firstName $lastName'.trim();
 
       final posting = await postingService.createPosting(
-        posterId: currentUser.uid, 
-        posterName: fullName, 
-        posterVerified: currentUser.isVerified, 
-        itemName: itemName, 
-        description: description, 
-        photoFile: photoFile, 
-        selectedTags: selectedTags, 
-        expirationDate: expirationDate
+        posterId: currentUser.uid,
+        posterName: fullName,
+        posterVerified: currentUser.isVerified,
+        itemName: itemName,
+        description: description,
+        photoFile: photoFile,
+        selectedTags: selectedTags,
+        expirationDate: expirationDate,
       );
 
       // add to local list
@@ -95,15 +99,15 @@ class PostingProvider extends ChangeNotifier {
   /// update a posting status
   Future<void> updatePostingStatus(
     String postingId,
-    String newStatus,
-    { String? claimedBy, }
-  ) async {
+    String newStatus, {
+    String? claimedBy,
+  }) async {
     setLoading(true);
     clearError();
 
     try {
       await postingService.updatePostingStatus(
-        postingId, 
+        postingId,
         newStatus,
         claimedBy: claimedBy,
       );
@@ -133,7 +137,7 @@ class PostingProvider extends ChangeNotifier {
 
     try {
       await postingService.deletePosting(postingId);
-
+      await messageProvider.deleteChatsForItem(postingId);
       // remove from local list
       userPostings.removeWhere((p) => p.id == postingId);
       notifyListeners();
@@ -146,7 +150,11 @@ class PostingProvider extends ChangeNotifier {
   }
 
   /// create a claim
-  Future<void> createClaim(String postingId, String claimerId, String claimerName) async {
+  Future<void> createClaim(
+    String postingId,
+    String claimerId,
+    String claimerName,
+  ) async {
     try {
       await postingService.createClaim(postingId, claimerId, claimerName);
     } catch (e) {
@@ -156,7 +164,11 @@ class PostingProvider extends ChangeNotifier {
   }
 
   /// accept a claim
-  Future<void> acceptClaim(String claimId, String postingId, String claimerId) async {
+  Future<void> acceptClaim(
+    String claimId,
+    String postingId,
+    String claimerId,
+  ) async {
     try {
       isLoading = true;
       notifyListeners();
