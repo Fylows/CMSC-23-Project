@@ -143,10 +143,12 @@ class _LeaderboardSection extends StatelessWidget {
   final LeaderboardProvider leaderboard;
 
   const _LeaderboardSection({required this.leaderboard});
+
   final tempPfp =
       'https://www.gravatar.com/avatar/?d=mp'; // ← grey silhouette, no face;
   @override
   Widget build(BuildContext context) {
+    leaderboard.loadLeaderboard(context.read<AuthProvider>().user?.uid ?? '');
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
