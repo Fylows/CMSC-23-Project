@@ -49,7 +49,10 @@ class MyApp extends StatelessWidget {
 
           '/notifications': (context) => const NotificationsPage(),
           // --- NAV BAR ---
-          '/pantry': (context) => const MainScaffold(child: PantryPage()),
+          '/pantry': (context) { 
+            final args = ModalRoute.of(context)?.settings.arguments as String?;
+            return MainScaffold(child: PantryPage(initialSearch: args));
+          },
           // '/chat' : (context) => const MainScaffold(currentRoute: '/chat', child: ChatScreen()),
           // '/cart' : (context) => const MainScaffold(currentRoute: '/cart', child: CartScreen()),
 
