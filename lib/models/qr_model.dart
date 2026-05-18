@@ -8,8 +8,10 @@ class QrModel {
   final String ownerUID;
   final String claimerUID;
   final DateTime expiresAt;
+  final String chatId;
 
   const QrModel({
+    required this.chatId,
     required this.itemID,
     required this.claimingID,
     required this.ownerUID,
@@ -21,6 +23,7 @@ class QrModel {
 
   factory QrModel.fromJson(Map<String, dynamic> json) {
     return QrModel(
+      chatId: json['chatId'] as String,
       itemID: json['itemID'] as String,
       claimingID: json['claimingID'] as String,
       ownerUID: json['ownerUID'] as String,
@@ -35,6 +38,7 @@ class QrModel {
     'ownerUID': ownerUID,
     'claimerUID': claimerUID,
     'expiresAt': expiresAt.toIso8601String(),
+    'chatId': chatId,
   };
 
   // ── Encode / decode from raw QR string ────────────────────────

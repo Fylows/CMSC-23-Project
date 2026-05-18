@@ -70,10 +70,10 @@ class LeaderboardProvider extends ChangeNotifier {
           .collection('users')
           .orderBy('contributorScore', descending: true)
           .orderBy('createdAt')
-          .orderBy('username') // ← alphabetical tiebreaker
+          .orderBy('username')
           .limit(3)
           .get();
-      // Guard — no users at all
+
       if (topSnap.docs.isEmpty) {
         _state = _state.copyWith(isLoading: false);
         notifyListeners();
@@ -93,13 +93,12 @@ class LeaderboardProvider extends ChangeNotifier {
             .collection('users')
             .orderBy('contributorScore', descending: true)
             .orderBy('createdAt')
-            .orderBy('username') // ← same here
+            .orderBy('username')
             .startAfterDocument(topSnap.docs.last)
             .limit(20)
             .get();
 
         rest = restSnap.docs
-            .where((doc) => doc.id != currentUid) // filter first
             .toList()
             .asMap()
             .entries
@@ -109,27 +108,58 @@ class LeaderboardProvider extends ChangeNotifier {
             .toList();
       }
 
-      // 3. Current user rank
-      final currentUserDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(currentUid)
-          .get();
-
-      final currentScore = currentUserDoc.data()?['contributorScore'] ?? 0;
-
-      final aboveCount = await FirebaseFirestore.instance
-          .collection('users')
-          .where('contributorScore', isGreaterThan: currentScore)
-          .count()
-          .get();
-
-      final currentUser = LeaderboardEntry(
-        rank: (aboveCount.count ?? 0) + 1,
-        username: currentUserDoc.data()?['username'] ?? 'Me',
-        contributions: currentScore,
-        imageUrl: currentUserDoc.data()?['profilePictureUrl'],
-        isCurrentUser: true,
+      // 3. Current user — derive rank from visible list first to avoid duplicates
+      final allVisible = [...topThree, ...rest];
+      final visibleEntry = allVisible.cast<LeaderboardEntry?>().firstWhere(
+        (e) => e?.isCurrentUser == true,
+        orElse: () => null,
       );
+
+      LeaderboardEntry currentUser;
+
+      if (visibleEntry != null) {
+        // Already in the leaderboard — reuse the rank, it's consistent
+        currentUser = visibleEntry;
+      } else {
+        // Outside visible window — compute rank respecting all sort fields
+        final currentUserDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUid)
+            .get();
+
+        final data = currentUserDoc.data() ?? {};
+        final currentScore = data['contributorScore'] ?? 0;
+        final currentCreatedAt = data['createdAt'];
+
+        final results = await Future.wait([
+          // Users with a strictly higher score
+          FirebaseFirestore.instance
+              .collection('users')
+              .where('contributorScore', isGreaterThan: currentScore)
+              .count()
+              .get(),
+          // Users with the same score but an earlier createdAt (higher rank)
+          if (currentCreatedAt != null)
+            FirebaseFirestore.instance
+                .collection('users')
+                .where('contributorScore', isEqualTo: currentScore)
+                .where('createdAt', isLessThan: currentCreatedAt)
+                .count()
+                .get(),
+        ]);
+
+        final aboveByScore = results[0].count ?? 0;
+        final aboveByDate = results.length > 1 ? (results[1].count ?? 0) : 0;
+        final rank = aboveByScore + aboveByDate + 1;
+
+        currentUser = LeaderboardEntry(
+          rank: rank,
+          username: data['username'] ?? 'Me',
+          contributions: currentScore,
+          imageUrl: data['profilePictureUrl'],
+          isCurrentUser: true,
+        );
+      }
 
       _state = _state.copyWith(
         topThree: topThree,

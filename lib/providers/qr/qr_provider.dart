@@ -19,6 +19,7 @@ class QrProvider {
   /// Builds the [ClaimingQrModel] that gets encoded into the QR widget.
   /// [validForMinutes] controls how long the QR stays usable.
   QrModel generatePayload({
+    required String chatId,
     required String itemID,
     required String claimingID,
     required String ownerUID,
@@ -26,6 +27,7 @@ class QrProvider {
     int validForMinutes = 15,
   }) {
     return QrModel(
+      chatId: chatId,
       itemID: itemID,
       claimingID: claimingID,
       ownerUID: ownerUID,
@@ -81,6 +83,8 @@ class QrProvider {
       final itemRef = _db.collection('postings').doc(payload.itemID);
       final claimingRef = _db.collection('claims').doc(payload.claimingID);
 
+      final chatsRef = _db.collection('chats').doc(payload.chatId);
+
       // Run inside a transaction so we can read-then-write safely
       await _db.runTransaction((tx) async {
         final itemSnap = await tx.get(itemRef);
@@ -100,7 +104,8 @@ class QrProvider {
         }
 
         // Guard: claimerUID in the document must match the current user
-        final storedClaimerUID = claimingSnap.data()?['claimerUID'] as String?;
+        final chatsSnap = await tx.get(chatsRef);
+        final storedClaimerUID = chatsSnap.data()?['claimerUid'] as String?;
         final currentUID = _auth.currentUser?.uid;
         if (storedClaimerUID != currentUID) {
           throw _UnauthorizedException();
@@ -109,6 +114,13 @@ class QrProvider {
         tx.update(itemRef, {'status': 'completed'});
 
         tx.update(claimingRef, {'status': 'completed'});
+
+        tx.update(chatsRef, {
+          'claimed': true,
+          'lastMessage': 'The item has been claimed and marked as completed.',
+          'lastMessageSenderId': currentUID,
+          'lastMessageTime': FieldValue.serverTimestamp(),
+        });
       });
 
       return ConfirmResult.success;
@@ -116,7 +128,8 @@ class QrProvider {
       return ConfirmResult.alreadyCompleted;
     } on _UnauthorizedException {
       return ConfirmResult.unauthorized;
-    } catch (_) {
+    } catch (e) {
+      print('Error confirming claiming: $e');
       return ConfirmResult.error;
     }
   }

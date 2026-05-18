@@ -78,6 +78,7 @@ class MessageProvider extends ChangeNotifier {
     String itemId,
     String itemName,
     String currentName,
+    String? claimingId,
   ) async {
     final currentUid = _auth.currentUser?.uid;
     if (currentUid == null) return null;
@@ -102,6 +103,9 @@ class MessageProvider extends ChangeNotifier {
           'lastMessageSenderId': '',
           'lastMessageTime': FieldValue.serverTimestamp(),
           'createdAt': FieldValue.serverTimestamp(),
+          'claimingId': claimingId,
+          'claimerUid': currentUid,
+          'claimed': false,
         });
       }
 
@@ -111,7 +115,6 @@ class MessageProvider extends ChangeNotifier {
     } catch (e) {
       _isLoading = false;
       _error = e.toString();
-      debugPrint('DEBUG getOrCreateChat error: $e');
       notifyListeners();
       return null;
     }
@@ -265,5 +268,13 @@ class MessageProvider extends ChangeNotifier {
       debugPrint('DEBUG getUserProfile error: $e');
       return null;
     }
+  }
+
+  Stream<Map<String, dynamic>?> watchChat(String chatId) {
+    return _db
+        .collection('chats')
+        .doc(chatId)
+        .snapshots()
+        .map((snap) => snap.data());
   }
 }

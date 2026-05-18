@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -241,6 +242,7 @@ class ItemDetailPage extends StatelessWidget {
                             item.id,
                             item.itemName,
                             authProvider.user?.displayName ?? 'Anonymous',
+                            null,
                           );
                       if (chatId != null && context.mounted) {
                         Navigator.push(
@@ -545,7 +547,15 @@ Widget _buildClaimCard(
                       item.id,
                       item.itemName,
                       claim.claimerName,
+                      claim.id,
                     );
+
+                    if (chatId != null) {
+                      await FirebaseFirestore.instance
+                          .collection('chats')
+                          .doc(chatId)
+                          .update({'claimingId': claim.id});
+                    }
 
                     // Step 3 — guard against null chatId
                     if (chatId == null) {

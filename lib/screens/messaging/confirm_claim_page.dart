@@ -153,36 +153,6 @@ class _ConfirmClaimingScreenState extends State<ConfirmClaimingScreen> {
               ),
               const SizedBox(height: 28),
 
-              // ── Details card ──
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  children: [
-                    _DetailRow(label: 'Item ID', value: widget.payload.itemID),
-                    const SizedBox(height: 12),
-                    _DetailRow(
-                      label: 'Claiming ID',
-                      value: widget.payload.claimingID,
-                    ),
-                    const SizedBox(height: 12),
-                    _DetailRow(
-                      label: 'Owner',
-                      value: _shortenUID(widget.payload.ownerUID),
-                    ),
-                    const SizedBox(height: 12),
-                    _DetailRow(
-                      label: 'Claimer',
-                      value: _shortenUID(widget.payload.claimerUID),
-                    ),
-                  ],
-                ),
-              ),
-
               const Spacer(),
 
               // ── Buttons ──
