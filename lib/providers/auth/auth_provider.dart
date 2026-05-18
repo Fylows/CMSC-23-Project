@@ -31,12 +31,33 @@ class AuthProvider extends ChangeNotifier {
   void onAuthStateChanged(firebase_auth.User? firebaseUser) {
     if (firebaseUser != null) {
       // means user is logged in
-      user = User(uid: firebaseUser.uid, email: firebaseUser.email ?? '');
+      // fetch full user document from firestore
+      loadUserFromFirestore(firebaseUser.uid);
     } else {
       user = null;
+      notifyListeners();
     }
+  }
 
-    notifyListeners();
+  Future<void> loadUserFromFirestore(String uid) async {
+    try {
+      final userDoc = await firestore.collection('users').doc(uid).get();
+
+      if (userDoc.exists) {
+        user = User.fromMap({
+          ...userDoc.data() ?? {},
+          'uid': uid,
+        });
+      } else {
+        // fallback if doc doesnt exist
+        user = User(uid: uid, email: '');
+      }
+      notifyListeners();
+    } catch (e) {
+      setError('Error loading user: $e');
+      user = User(uid: uid, email: '');
+      notifyListeners();
+    }
   }
 
   // signup
@@ -162,6 +183,30 @@ class AuthProvider extends ChangeNotifier {
       rethrow; // re-throw so ProfileSetupPage can handle it
     } finally {
       setLoading(false);
+    }
+  }
+
+  /// update verification status of a user
+  Future<void> updateUserVerification(String verificationSelfieUrl) async {
+    try {
+      if (user == null) throw Exception('User not authenticated');
+
+      await firestore.collection('users').doc(user!.uid).update({
+        'isVerified': true,
+        'verificationSelfieUrl': verificationSelfieUrl,
+      });
+
+      // update local user object
+      final updatedUser = user!.copyWith(
+        isVerified: true,
+        verificationSelfieUrl: verificationSelfieUrl,
+      );
+
+      user = updatedUser;
+      notifyListeners();
+    } catch (e) {
+      setError('Error updating verification: $e');
+      rethrow;
     }
   }
 

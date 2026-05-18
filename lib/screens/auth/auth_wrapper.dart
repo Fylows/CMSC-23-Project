@@ -5,6 +5,7 @@ import 'package:elbi_eats/providers/auth/auth_provider.dart';
 import 'sign_in_page.dart';
 import 'sign_up_page.dart';
 import 'forgot_password_page.dart';
+import 'verification_camera_page.dart';
 
 class AuthWrapper extends StatefulWidget {
   const AuthWrapper({super.key});
@@ -17,6 +18,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
   //track which auth screen to show (signin or signup)
   bool showSignUp = false;
   bool showForgotPassword = false;
+  bool showVerificationCamera = false;
   bool showProfileSetup = false;
 
   String? _firstName;
@@ -31,9 +33,20 @@ class _AuthWrapperState extends State<AuthWrapper> {
         return StreamBuilder(
           stream: authProvider.authStateChanges,
           builder: (context, snapshot) {
-            // check if user is authenticated
+            // show verification camera first
             if (snapshot.hasData && snapshot.data != null) {
-              // profile setup first if signup
+              if (showVerificationCamera) {
+                return VerificationCameraPage(
+                  onVerificationComplete: () {
+                    setState(() {
+                      showVerificationCamera = false;
+                      showProfileSetup = true;
+                    });
+                  }
+                );
+              }
+
+              // profile setup second
               if (showProfileSetup) {
                 return ProfileSetupPage(
                   firstName: _firstName ?? '',
@@ -72,7 +85,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
                     },
                     onProfileSetupNeeded: (firstname, lastName, dateOfBirth) {
                       setState(() {
-                        showProfileSetup = true;
+                        showVerificationCamera = true;
                         _firstName = firstname;
                         _lastName = lastName;
                         _dateOfBirth = dateOfBirth;

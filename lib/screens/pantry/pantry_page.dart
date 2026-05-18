@@ -1,5 +1,4 @@
 import 'package:elbi_eats/screens/pantry/item_detail_page.dart';
-import 'package:elbi_eats/screens/pantry/post_item_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -248,15 +247,25 @@ class _PantryPageState extends State<PantryPage> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFFFA5800),
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const PostItemPage()),
+      floatingActionButton: Consumer<AuthProvider>(
+        builder: (context, authProvider, _) {
+          final isVerified = authProvider.user?.isVerified ?? false;
+
+          return FloatingActionButton(
+            onPressed: isVerified
+              ? () => Navigator.pushNamed(context, '/post-item')
+              : () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Complete verification to post items'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              },
+            backgroundColor: isVerified ? const Color(0xFFFA5800) : Colors.grey,
+            child: const Icon(Icons.add),
           );
         },
-        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
