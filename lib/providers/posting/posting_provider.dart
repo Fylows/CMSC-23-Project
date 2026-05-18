@@ -66,7 +66,7 @@ class PostingProvider extends ChangeNotifier {
         .get();
 
       
-      final firstName = userDoc.data()?['firstname'] ?? userDoc.data()?['firstname'] ?? 'Anonymous';
+      final firstName = userDoc.data()?['firstname'] ?? userDoc.data()?['firstName'] ?? 'Anonymous';
       final lastName = userDoc.data()?['lastName'] ?? '';
       final fullName = '$firstName $lastName'.trim();
 
