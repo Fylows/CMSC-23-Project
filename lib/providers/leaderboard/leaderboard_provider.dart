@@ -5,6 +5,12 @@ import 'package:elbi_eats/models/leaderboard_entry_model.dart';
 import 'package:elbi_eats/models/leaderboard_state_model.dart';
 
 class LeaderboardProvider extends ChangeNotifier {
+  final String currentUid;
+
+  LeaderboardProvider(this.currentUid) {
+    loadLeaderboard(currentUid);
+  }
+
   LeaderboardState _state = const LeaderboardState();
   LeaderboardState get state => _state;
 

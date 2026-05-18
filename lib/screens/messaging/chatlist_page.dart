@@ -1,68 +1,55 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
-import 'chat_page.dart';
 import 'package:elbi_eats/providers/auth/auth_provider.dart';
-import 'userlist_page.dart';
+import 'package:elbi_eats/providers/message/message_provider.dart';
+import 'chat_page.dart';
 
 class ChatListPage extends StatelessWidget {
-  const ChatListPage();
+  const ChatListPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     final uid = context.watch<AuthProvider>().user?.uid;
-    print('DEBUG databaseId: ${FirebaseFirestore.instance.databaseId}');
 
-    // Auth still loading or user signed out
     if (uid == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
-      appBar: AppBar(
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.edit_square),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => UserListPage(currentUserId: uid),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('chats')
-            .where('members', arrayContains: uid)
-            .snapshots(),
+      appBar: AppBar(title: const Text('Chats')),
+      body: StreamBuilder<List<Map<String, dynamic>>>(
+        stream: context.read<MessageProvider>().watchChats(uid),
         builder: (context, snapshot) {
-          if (!snapshot.hasData) return const CircularProgressIndicator();
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-          final chats = snapshot.data!.docs;
+          final chats = snapshot.data!;
+
+          if (chats.isEmpty) {
+            return const Center(child: Text('No chats yet.'));
+          }
 
           return ListView.builder(
             itemCount: chats.length,
             itemBuilder: (context, index) {
-              final data = chats[index].data() as Map<String, dynamic>;
-              final chatId = chats[index].id;
-              final otherUserName = data['otherUserName'] ?? 'Unknown';
-
+              final chat = chats[index];
               return ListTile(
-                leading: const CircleAvatar(child: Icon(Icons.person)),
-                title: Text(otherUserName),
-                subtitle: Text(data['lastMessage'] ?? ''),
+                leading: CircleAvatar(
+                  child: Text(
+                    (chat['otherUserName'] as String)[0].toUpperCase(),
+                  ),
+                ),
+                title: Text(chat['otherUserName'] ?? 'Unknown'),
+                subtitle: Text(chat['lastMessage'] ?? ''),
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (_) => ChatPage(
-                        chatId: chatId,
+                        chatId: chat['chatId'],
                         currentUserId: uid,
-                        otherUserName: otherUserName,
+                        otherUserName: chat['otherUserName'] ?? 'Unknown',
                       ),
                     ),
                   );

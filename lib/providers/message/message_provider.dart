@@ -1,15 +1,200 @@
+import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:elbi_eats/models/message_model.dart';
 
-Stream<List<Message>> getMessages(String chatId) {
-  return FirebaseFirestore.instance
-      .collection('chats')
-      .doc(chatId)
-      .collection('messages')
-      .orderBy('timestamp')
-      .snapshots()
-      .map(
-        (snapshot) =>
-            snapshot.docs.map((doc) => Message.fromMap(doc.data())).toList(),
+class MessageProvider extends ChangeNotifier {
+  final _db = FirebaseFirestore.instance;
+  final _auth = FirebaseAuth.instance;
+
+  // ─── State ───────────────────────────────────────────────────────────────
+  List<Map<String, dynamic>> _chats = [];
+  List<Message> _messages = [];
+  bool _isLoading = false;
+  String? _error;
+  String? _activeChatId;
+
+  // ─── Getters ─────────────────────────────────────────────────────────────
+  List<Map<String, dynamic>> get chats => _chats;
+  List<Message> get messages => _messages;
+  bool get isLoading => _isLoading;
+  String? get error => _error;
+  String? get activeChatId => _activeChatId;
+
+  // ─── Stream subscriptions ────────────────────────────────────────────────
+  Stream<QuerySnapshot>? _chatListSubscription;
+  Stream<QuerySnapshot>? _messagesSubscription;
+
+  // ─── Chat List ───────────────────────────────────────────────────────────
+
+  /// Call this on startup to listen to all chats for the current user
+  Stream<List<Map<String, dynamic>>> watchChats(String uid) {
+    return _db
+        .collection('chats')
+        .where('members', arrayContains: uid)
+        // .orderBy('lastMessageTime', descending: true) // ← comment this out temporarily
+        .snapshots()
+        .map(
+          (snap) => snap.docs.map((doc) {
+            final data = doc.data();
+            return {
+              'chatId': doc.id,
+              'otherUserName': data['otherUserName'] ?? 'Unknown',
+              'lastMessage': data['lastMessage'] ?? '',
+              'lastMessageTime': data['lastMessageTime'],
+              'members': data['members'] ?? [],
+            };
+          }).toList(),
+        )
+        .handleError((e) {
+          debugPrint('DEBUG watchChats error: $e'); // ← will show exact error
+        });
+  }
+
+  // ─── Get or Create Chat ──────────────────────────────────────────────────
+
+  /// Returns chatId. Creates the doc if it doesn't exist.
+  Future<String?> getOrCreateChat(
+    String otherUserId,
+    String otherUserName,
+  ) async {
+    final currentUid = _auth.currentUser?.uid;
+    if (currentUid == null) {
+      _error = 'Not authenticated';
+      notifyListeners();
+      return null;
+    }
+
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      final sorted = [currentUid, otherUserId]..sort();
+      final chatId = '${sorted[0]}_${sorted[1]}';
+      final chatRef = _db.collection('chats').doc(chatId);
+      final chatDoc = await chatRef.get();
+
+      if (!chatDoc.exists) {
+        await chatRef.set({
+          'members': sorted,
+          'otherUserName': otherUserName,
+          'lastMessage': '',
+          'lastMessageTime': FieldValue.serverTimestamp(),
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+        debugPrint('DEBUG chat created: $chatId');
+      }
+
+      _activeChatId = chatId;
+      _isLoading = false;
+      notifyListeners();
+      return chatId;
+    } catch (e) {
+      _isLoading = false;
+      _error = e.toString();
+      debugPrint('DEBUG getOrCreateChat error: $e');
+      notifyListeners();
+      return null;
+    }
+  }
+
+  // ─── Messages ────────────────────────────────────────────────────────────
+
+  /// Stream of messages for a given chatId
+  Stream<List<Message>> watchMessages(String chatId) {
+    return _db
+        .collection('chats')
+        .doc(chatId)
+        .collection('messages')
+        .orderBy('timestamp')
+        .snapshots()
+        .map(
+          (snap) => snap.docs.map((d) => Message.fromMap(d.data())).toList(),
+        );
+  }
+
+  /// Send a message and update lastMessage on the chat doc
+  Future<void> sendMessage(String chatId, String text) async {
+    final currentUid = _auth.currentUser?.uid;
+    if (currentUid == null || text.trim().isEmpty) return;
+
+    try {
+      final chatRef = _db.collection('chats').doc(chatId);
+      final batch = _db.batch();
+
+      final msgRef = chatRef.collection('messages').doc();
+      batch.set(
+        msgRef,
+        Message(
+          senderId: currentUid,
+          text: text.trim(),
+          timestamp: DateTime.now(),
+        ).toMap(),
       );
+
+      batch.update(chatRef, {
+        'lastMessage': text.trim(),
+        'lastMessageTime': FieldValue.serverTimestamp(),
+      });
+
+      await batch.commit();
+    } catch (e) {
+      _error = e.toString();
+      debugPrint('DEBUG sendMessage error: $e');
+      notifyListeners();
+    }
+  }
+
+  /// Delete a message
+  Future<void> deleteMessage(String chatId, String messageId) async {
+    try {
+      await _db
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .doc(messageId)
+          .delete();
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+    }
+  }
+
+  // ─── Helpers ─────────────────────────────────────────────────────────────
+
+  /// Build a consistent chatId from two uids
+  String buildChatId(String uid1, String uid2) {
+    final sorted = [uid1, uid2]..sort();
+    return '${sorted[0]}_${sorted[1]}';
+  }
+
+  /// Clear active chat
+  void clearActiveChat() {
+    _activeChatId = null;
+    _messages = [];
+    notifyListeners();
+  }
+
+  /// Clear error
+  void clearError() {
+    _error = null;
+    notifyListeners();
+  }
+
+  /// Called by ChatPage on open — guarantees doc exists before stream starts
+  Future<void> ensureChatExists(String chatId, String currentUserId) async {
+    final chatRef = _db.collection('chats').doc(chatId);
+    final doc = await chatRef.get();
+
+    if (!doc.exists) {
+      final uids = chatId.split('_');
+      await chatRef.set({
+        'members': uids,
+        'lastMessage': '',
+        'lastMessageTime': FieldValue.serverTimestamp(),
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      debugPrint('DEBUG ensureChatExists: created $chatId');
+    }
+  }
 }

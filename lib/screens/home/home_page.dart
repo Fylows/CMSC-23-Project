@@ -15,28 +15,16 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final uid = context.read<AuthProvider>().user?.uid;
-      if (uid == null) return;
-      context.read<LeaderboardProvider>().loadLeaderboard(uid);
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final leaderboard = context.read<LeaderboardProvider>();
-    leaderboard.loadLeaderboard(context.read<AuthProvider>().user?.uid ?? '');
+    final leaderboard = context.watch<LeaderboardProvider>();
+
     return Scaffold(
       backgroundColor: const Color(0xFFF2F2F2),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(14),
         child: Column(
           children: [
-            _LeaderboardSection(
-              leaderboard: leaderboard,
-            ), // ← pass the provider here
+            LeaderboardSection(leaderboard: leaderboard),
             SizedBox(height: 14),
             _TopPicksSection(),
             SizedBox(height: 14),
@@ -48,7 +36,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-
 // ─── Top Picks Section ────────────────────────────────────────────────────────
 
 class _TopPicksSection extends StatelessWidget {
@@ -140,11 +127,10 @@ class _PostedItemsSection extends StatelessWidget {
   }
 }
 
-class _LeaderboardSection extends StatelessWidget {
+class LeaderboardSection extends StatelessWidget {
   final LeaderboardProvider leaderboard;
 
-  const _LeaderboardSection({required this.leaderboard});
-
+  const LeaderboardSection({super.key, required this.leaderboard});
   final tempPfp =
       'https://www.gravatar.com/avatar/?d=mp'; // ← grey silhouette, no face;
   @override

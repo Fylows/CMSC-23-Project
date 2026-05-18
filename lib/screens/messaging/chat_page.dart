@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+import 'package:elbi_eats/providers/message/message_provider.dart';
 import 'package:elbi_eats/models/message_model.dart';
-
-// ─── Page ───────────────────────────────────────────────────────────────────
 
 class ChatPage extends StatefulWidget {
   final String chatId;
@@ -21,79 +20,28 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
+  final TextEditingController _controller = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  late Future<void> _chatReady;
+
   @override
   void initState() {
     super.initState();
-    _ensureChatExists(); // ← add this
+    _chatReady = _ensureDocExists();
   }
 
-  Future<void> _ensureChatExists() async {
-    final chatRef = FirebaseFirestore.instance
-        .collection('chats')
-        .doc(widget.chatId);
-    print('DEBUG databaseId: ${FirebaseFirestore.instance.databaseId}');
-    final doc = await chatRef.get();
-    print('DEBUG ChatPage initState - doc exists: ${doc.exists}');
-
-    if (!doc.exists) {
-      // Extract uids from chatId (they're separated by _)
-      final uids = widget.chatId.split('_');
-      if (uids.length == 2) {
-        await chatRef.set({
-          'members': uids,
-          'lastMessage': '',
-          'lastMessageTime': FieldValue.serverTimestamp(),
-          'createdAt': FieldValue.serverTimestamp(),
-        });
-        print('DEBUG ChatPage created missing doc');
-      }
-    }
+  Future<void> _ensureDocExists() async {
+    await context.read<MessageProvider>().ensureChatExists(
+      widget.chatId,
+      widget.currentUserId,
+    );
   }
-
-  final TextEditingController _controller = TextEditingController();
-  final ScrollController _scrollController = ScrollController();
-
-  // ─── Stream ──────────────────────────────────────────────────────────────
-
-  Stream<List<Message>> get _messagesStream => FirebaseFirestore.instance
-      .collection('chats')
-      .doc(widget.chatId)
-      .collection('messages')
-      .orderBy('timestamp')
-      .snapshots()
-      .map((snap) => snap.docs.map((d) => Message.fromMap(d.data())).toList());
-
-  // ─── Actions ─────────────────────────────────────────────────────────────
 
   Future<void> _sendMessage() async {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
     _controller.clear();
-
-    final chatRef = FirebaseFirestore.instance
-        .collection('chats')
-        .doc(widget.chatId);
-
-    // Run both writes together
-    final batch = FirebaseFirestore.instance.batch();
-
-    final msgRef = chatRef.collection('messages').doc();
-    batch.set(
-      msgRef,
-      Message(
-        senderId: widget.currentUserId,
-        text: text,
-        timestamp: DateTime.now(),
-      ).toMap(),
-    );
-
-    // Keep the chat list preview up to date
-    batch.update(chatRef, {
-      'lastMessage': text,
-      'lastMessageTime': FieldValue.serverTimestamp(),
-    });
-
-    await batch.commit();
+    await context.read<MessageProvider>().sendMessage(widget.chatId, text);
     _scrollToBottom();
   }
 
@@ -109,8 +57,6 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
-  // ─── Lifecycle ───────────────────────────────────────────────────────────
-
   @override
   void dispose() {
     _controller.dispose();
@@ -118,30 +64,33 @@ class _ChatPageState extends State<ChatPage> {
     super.dispose();
   }
 
-  // ─── Build ───────────────────────────────────────────────────────────────
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: _buildAppBar(),
-      body: Column(
-        children: [
-          Expanded(child: _buildMessageList()),
-          _buildInputBar(),
-        ],
+      appBar: AppBar(title: Text(widget.otherUserName), centerTitle: true),
+      body: FutureBuilder(
+        future: _chatReady,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+          return Column(
+            children: [
+              Expanded(child: _buildMessageList()),
+              _buildInputBar(),
+            ],
+          );
+        },
       ),
     );
   }
 
-  // ─── Widgets ─────────────────────────────────────────────────────────────
-
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(title: Text(widget.otherUserName), centerTitle: true);
-  }
-
   Widget _buildMessageList() {
     return StreamBuilder<List<Message>>(
-      stream: _messagesStream,
+      stream: context.read<MessageProvider>().watchMessages(widget.chatId),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -156,6 +105,8 @@ class _ChatPageState extends State<ChatPage> {
           return const Center(child: Text('No messages yet. Say hello!'));
         }
 
+        WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+
         return ListView.builder(
           controller: _scrollController,
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
@@ -168,7 +119,6 @@ class _ChatPageState extends State<ChatPage> {
 
   Widget _buildMessageBubble(Message message) {
     final isMe = message.senderId == widget.currentUserId;
-
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
