@@ -85,6 +85,8 @@ class QrProvider {
 
       final chatsRef = _db.collection('chats').doc(payload.chatId);
 
+      final posterRef = _db.collection('users').doc(payload.ownerUID);
+
       // Run inside a transaction so we can read-then-write safely
       await _db.runTransaction((tx) async {
         final itemSnap = await tx.get(itemRef);
@@ -121,6 +123,8 @@ class QrProvider {
           'lastMessageSenderId': currentUID,
           'lastMessageTime': FieldValue.serverTimestamp(),
         });
+
+        tx.update(posterRef, {'contributorScore': FieldValue.increment(1)});
       });
 
       return ConfirmResult.success;
