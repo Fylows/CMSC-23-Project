@@ -187,6 +187,37 @@ class MessageProvider extends ChangeNotifier {
     }
   }
 
+  // delete chat relating to item when posting is deleted
+  Future<void> deleteChatsForItem(String itemId) async {
+    try {
+      // Find all chats containing this itemId
+      final chatsSnap = await _db
+          .collection('chats')
+          .where('itemId', isEqualTo: itemId)
+          .get();
+
+      for (final chatDoc in chatsSnap.docs) {
+        // Delete all messages in each chat
+        final messages = await chatDoc.reference.collection('messages').get();
+
+        final batch = _db.batch();
+        for (final msg in messages.docs) {
+          batch.delete(msg.reference);
+        }
+        // Delete the chat doc itself
+        batch.delete(chatDoc.reference);
+        await batch.commit();
+      }
+
+      debugPrint(
+        'DEBUG deleted ${chatsSnap.docs.length} chats for item $itemId',
+      );
+    } catch (e) {
+      _error = e.toString();
+      debugPrint('DEBUG deleteChatsForItem error: $e');
+      notifyListeners();
+    }
+  }
   // ─── Helpers ─────────────────────────────────────────────────────────────
 
   /// Build a consistent chatId from two uids
