@@ -429,43 +429,6 @@ class _ProfilePageState extends State<ProfilePage> {
           ],
         ),
       ),
-      bottomNavigationBar: Container(
-        color: const Color(0xFFCB2020),
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.home, color: Colors.white, size: 30),
-              onPressed: () {},
-            ),
-            IconButton(
-              icon: const Icon(
-                Icons.inventory_2,
-                color: Colors.white,
-                size: 30,
-              ),
-              onPressed: () {},
-            ),
-            IconButton(
-              icon: const Icon(
-                Icons.chat_bubble_outline,
-                color: Colors.white,
-                size: 30,
-              ),
-              onPressed: () {},
-            ),
-            IconButton(
-              icon: const Icon(
-                Icons.shopping_cart_outlined,
-                color: Colors.white,
-                size: 30,
-              ),
-              onPressed: () {},
-            ),
-          ],
-        ),
-      ),
     );
   }
 
