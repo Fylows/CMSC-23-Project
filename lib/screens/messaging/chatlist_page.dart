@@ -34,26 +34,62 @@ class ChatListPage extends StatelessWidget {
             itemCount: chats.length,
             itemBuilder: (context, index) {
               final chat = chats[index];
-              return ListTile(
-                leading: CircleAvatar(
-                  child: Text(
-                    (chat['otherUserName'] as String)[0].toUpperCase(),
-                  ),
+              return Dismissible(
+                key: Key(chat['chatId']),
+                direction: DismissDirection.endToStart, // swipe left
+                background: Container(
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.only(right: 20),
+                  color: Colors.red,
+                  child: const Icon(Icons.delete, color: Colors.white),
                 ),
-                title: Text(chat['otherUserName'] ?? 'Unknown'),
-                subtitle: Text(chat['lastMessage'] ?? ''),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ChatPage(
-                        chatId: chat['chatId'],
-                        currentUserId: uid,
-                        otherUserName: chat['otherUserName'] ?? 'Unknown',
+                confirmDismiss: (_) async {
+                  return await showDialog<bool>(
+                    context: context,
+                    builder: (_) => AlertDialog(
+                      title: const Text('Delete Chat'),
+                      content: const Text(
+                        'Are you sure you want to delete this chat?',
                       ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: const Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          child: const Text(
+                            'Delete',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                        ),
+                      ],
                     ),
                   );
                 },
+                onDismissed: (_) {
+                  context.read<MessageProvider>().deleteChat(chat['chatId']);
+                },
+                child: ListTile(
+                  leading: CircleAvatar(
+                    child: Text((chat['itemName'] as String)[0].toUpperCase()),
+                  ),
+                  title: Text(chat['itemName'] ?? 'Unknown'),
+                  subtitle: Text(chat['lastMessage'] ?? ''),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ChatPage(
+                          chatId: chat['chatId'],
+                          currentUserId: uid,
+                          otherUserName: chat['otherUserName'] ?? 'Unknown',
+                          itemName: chat['itemName'] ?? '',
+                        ),
+                      ),
+                    );
+                  },
+                ),
               );
             },
           );

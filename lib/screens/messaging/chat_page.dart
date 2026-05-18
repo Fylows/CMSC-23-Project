@@ -7,12 +7,14 @@ class ChatPage extends StatefulWidget {
   final String chatId;
   final String currentUserId;
   final String otherUserName;
+  final String itemName; // ← add
 
   const ChatPage({
     super.key,
     required this.chatId,
     required this.currentUserId,
     required this.otherUserName,
+    required this.itemName, // ← add
   });
 
   @override
@@ -67,7 +69,15 @@ class _ChatPageState extends State<ChatPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.otherUserName), centerTitle: true),
+      appBar: AppBar(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(widget.itemName),
+            Text(widget.otherUserName, style: const TextStyle(fontSize: 12)),
+          ],
+        ),
+      ),
       body: FutureBuilder(
         future: _chatReady,
         builder: (context, snapshot) {
@@ -89,62 +99,158 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Widget _buildMessageList() {
-    return StreamBuilder<List<Message>>(
-      stream: context.read<MessageProvider>().watchMessages(widget.chatId),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (snapshot.hasError) {
-          return const Center(child: Text('Something went wrong.'));
-        }
+    final otherUid = widget.chatId
+        .replaceAll(widget.currentUserId, '')
+        .replaceAll('_', '');
 
-        final messages = snapshot.data ?? [];
+    return FutureBuilder<Map<String, dynamic>?>(
+      future: context.read<MessageProvider>().getUserProfile(otherUid),
+      builder: (context, profileSnapshot) {
+        final profile = profileSnapshot.data;
+        final avatarUrl = profile?['profilePictureUrl'] as String?;
 
-        if (messages.isEmpty) {
-          return const Center(child: Text('No messages yet. Say hello!'));
-        }
+        return StreamBuilder<List<Message>>(
+          stream: context.read<MessageProvider>().watchMessages(widget.chatId),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.hasError) {
+              return const Center(child: Text('Something went wrong.'));
+            }
 
-        WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+            final messages = snapshot.data ?? [];
 
-        return ListView.builder(
-          controller: _scrollController,
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-          itemCount: messages.length,
-          itemBuilder: (context, index) => _buildMessageBubble(messages[index]),
+            if (messages.isEmpty) {
+              return const Center(child: Text('No messages yet. Say hello!'));
+            }
+
+            WidgetsBinding.instance.addPostFrameCallback(
+              (_) => _scrollToBottom(),
+            );
+
+            return ListView.builder(
+              controller: _scrollController,
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+              itemCount: messages.length,
+              itemBuilder: (context, index) {
+                final message = messages[index];
+                final isMe = message.senderId == widget.currentUserId;
+                final showHeader =
+                    !isMe &&
+                    (index == 0 ||
+                        messages[index - 1].senderId != message.senderId);
+
+                return _buildMessageBubble(
+                  message,
+                  showHeader: showHeader,
+                  avatarUrl: avatarUrl,
+                );
+              },
+            );
+          },
         );
       },
     );
   }
 
-  Widget _buildMessageBubble(Message message) {
+  Widget _buildMessageBubble(
+    Message message, {
+    bool showHeader = false,
+    String? avatarUrl,
+  }) {
     final isMe = message.senderId == widget.currentUserId;
-    return Align(
-      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.72,
-        ),
-        decoration: BoxDecoration(
-          color: isMe
-              ? Theme.of(context).colorScheme.primary
-              : Colors.grey[300],
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(16),
-            topRight: const Radius.circular(16),
-            bottomLeft: Radius.circular(isMe ? 16 : 4),
-            bottomRight: Radius.circular(isMe ? 4 : 16),
+
+    if (isMe) {
+      // My bubble — right aligned, no avatar or name
+      return Align(
+        alignment: Alignment.centerRight,
+        child: Container(
+          margin: const EdgeInsets.symmetric(vertical: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.72,
+          ),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primary,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(16),
+              topRight: Radius.circular(16),
+              bottomLeft: Radius.circular(16),
+              bottomRight: Radius.circular(4),
+            ),
+          ),
+          child: Text(
+            message.text,
+            style: const TextStyle(color: Colors.white, fontSize: 15),
           ),
         ),
-        child: Text(
-          message.text,
-          style: TextStyle(
-            color: isMe ? Colors.white : Colors.black87,
-            fontSize: 15,
+      );
+    }
+
+    // Their bubble — left aligned, with optional avatar and name
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          // Avatar — only show on first message in a group
+          if (showHeader)
+            CircleAvatar(
+              radius: 16,
+              backgroundImage: avatarUrl != null
+                  ? NetworkImage(avatarUrl)
+                  : null,
+              child: avatarUrl == null
+                  ? Text(widget.otherUserName[0].toUpperCase())
+                  : null,
+            )
+          else
+            const SizedBox(width: 32), // spacer to align non-first bubbles
+
+          const SizedBox(width: 8),
+
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Username above first bubble in a group
+              if (showHeader)
+                Padding(
+                  padding: const EdgeInsets.only(left: 4, bottom: 2),
+                  child: Text(
+                    widget.otherUserName,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.of(context).size.width * 0.62,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
+                    bottomLeft: Radius.circular(4),
+                    bottomRight: Radius.circular(16),
+                  ),
+                ),
+                child: Text(
+                  message.text,
+                  style: const TextStyle(color: Colors.black87, fontSize: 15),
+                ),
+              ),
+            ],
           ),
-        ),
+        ],
       ),
     );
   }

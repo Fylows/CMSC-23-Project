@@ -60,7 +60,8 @@ class MessageProvider extends ChangeNotifier {
             return {
               'chatId': doc.id,
               'otherUserName': otherName,
-              'lastMessage': preview, // ← "You: hey" or "hey"
+              'itemName': data['itemName'] ?? '',
+              'lastMessage': preview,
               'lastMessageTime': data['lastMessageTime'],
               'members': data['members'] ?? [],
             };
@@ -74,10 +75,11 @@ class MessageProvider extends ChangeNotifier {
   Future<String?> getOrCreateChat(
     String otherUserId,
     String otherUserName,
+    String itemId,
+    String itemName,
     String currentName,
   ) async {
     final currentUid = _auth.currentUser?.uid;
-    print("Current user name: $currentName");
     if (currentUid == null) return null;
 
     try {
@@ -85,17 +87,17 @@ class MessageProvider extends ChangeNotifier {
       notifyListeners();
 
       final sorted = [currentUid, otherUserId]..sort();
-      final chatId = '${sorted[0]}_${sorted[1]}';
+      final chatId = '${sorted[0]}_${sorted[1]}_$itemId';
+
       final chatRef = _db.collection('chats').doc(chatId);
       final chatDoc = await chatRef.get();
 
       if (!chatDoc.exists) {
         await chatRef.set({
           'members': sorted,
-          'memberNames': {
-            currentUid: currentName, // ← store both names
-            otherUserId: otherUserName,
-          },
+          'memberNames': {currentUid: currentName, otherUserId: otherUserName},
+          'itemId': itemId,
+          'itemName': itemName,
           'lastMessage': '',
           'lastMessageSenderId': '',
           'lastMessageTime': FieldValue.serverTimestamp(),
@@ -114,7 +116,6 @@ class MessageProvider extends ChangeNotifier {
       return null;
     }
   }
-
   // ─── Messages ────────────────────────────────────────────────────────────
 
   /// Stream of messages for a given chatId
@@ -162,17 +163,26 @@ class MessageProvider extends ChangeNotifier {
     }
   }
 
-  /// Delete a message
-  Future<void> deleteMessage(String chatId, String messageId) async {
+  /// Delete chat and all its messages
+  Future<void> deleteChat(String chatId) async {
     try {
-      await _db
+      // Delete all messages first
+      final messages = await _db
           .collection('chats')
           .doc(chatId)
           .collection('messages')
-          .doc(messageId)
-          .delete();
+          .get();
+
+      final batch = _db.batch();
+      for (final doc in messages.docs) {
+        batch.delete(doc.reference);
+      }
+      // Then delete the chat doc itself
+      batch.delete(_db.collection('chats').doc(chatId));
+      await batch.commit();
     } catch (e) {
       _error = e.toString();
+      debugPrint('DEBUG deleteChat error: $e');
       notifyListeners();
     }
   }
@@ -180,9 +190,10 @@ class MessageProvider extends ChangeNotifier {
   // ─── Helpers ─────────────────────────────────────────────────────────────
 
   /// Build a consistent chatId from two uids
-  String buildChatId(String uid1, String uid2) {
+  String buildChatId(String uid1, String uid2, String itemId) {
     final sorted = [uid1, uid2]..sort();
-    return '${sorted[0]}_${sorted[1]}';
+    // Use itemId not itemName — names can have spaces/special chars
+    return '${sorted[0]}_${sorted[1]}_$itemId';
   }
 
   /// Clear active chat
@@ -212,6 +223,16 @@ class MessageProvider extends ChangeNotifier {
         'createdAt': FieldValue.serverTimestamp(),
       });
       debugPrint('DEBUG ensureChatExists: created $chatId');
+    }
+  }
+
+  Future<Map<String, dynamic>?> getUserProfile(String uid) async {
+    try {
+      final doc = await _db.collection('users').doc(uid).get();
+      return doc.data();
+    } catch (e) {
+      debugPrint('DEBUG getUserProfile error: $e');
+      return null;
     }
   }
 }

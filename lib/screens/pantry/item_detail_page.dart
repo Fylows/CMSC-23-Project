@@ -238,7 +238,9 @@ class ItemDetailPage extends StatelessWidget {
                           .getOrCreateChat(
                             item.posterId,
                             item.posterName,
-                            authProvider.user!.displayName ?? 'Anonymous',
+                            item.id,
+                            item.itemName,
+                            authProvider.user?.displayName ?? 'Anonymous',
                           );
                       if (chatId != null && context.mounted) {
                         Navigator.push(
@@ -248,6 +250,7 @@ class ItemDetailPage extends StatelessWidget {
                               chatId: chatId,
                               currentUserId: authProvider.user!.uid,
                               otherUserName: item.posterName,
+                              itemName: item.itemName,
                             ),
                           ),
                         );
