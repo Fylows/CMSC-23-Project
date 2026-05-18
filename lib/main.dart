@@ -44,11 +44,12 @@ class MyApp extends StatelessWidget {
         initialRoute: '/',
         routes: {
           '/home': (context) => const MainScaffold(child: HomePage()),
-          '/post-item': (context) => const PostItemPage(), // this is a modal so it doesnt need a navbar
+          '/post-item': (context) =>
+              const PostItemPage(), // this is a modal so it doesnt need a navbar
 
           '/notifications': (context) => const NotificationsPage(),
           // --- NAV BAR ---
-          '/pantry' : (context) => const MainScaffold(child: PantryPage()),
+          '/pantry': (context) => const MainScaffold(child: PantryPage()),
           // '/chat' : (context) => const MainScaffold(currentRoute: '/chat', child: ChatScreen()),
           // '/cart' : (context) => const MainScaffold(currentRoute: '/cart', child: CartScreen()),
 

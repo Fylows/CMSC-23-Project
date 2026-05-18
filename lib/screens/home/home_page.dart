@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:elbi_eats/widgets/product_card.dart';
 import 'package:elbi_eats/widgets/small_product_card.dart';
-import 'package:elbi_eats/widgets/leaderboard_bar.dart';
 import 'package:elbi_eats/screens/home/leaderboard_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:elbi_eats/providers/leaderboard/leaderboard_provider.dart';
