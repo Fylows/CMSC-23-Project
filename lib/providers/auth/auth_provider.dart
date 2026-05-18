@@ -1,3 +1,4 @@
+import 'package:elbi_eats/services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/user/user_model.dart';
@@ -48,6 +49,15 @@ class AuthProvider extends ChangeNotifier {
           ...userDoc.data() ?? {},
           'uid': uid,
         });
+
+        // save FCM token to Firestore (FCM stands for Firebase Cloud Messaging)
+        final token =  await NotificationService().getToken();
+        if (token != null) {
+          await firestore.collection('users').doc(uid).update({
+            'fcmTokens': FieldValue.arrayUnion([token]),
+          });
+        }
+
       } else {
         // fallback if doc doesnt exist
         user = User(uid: uid, email: '');
