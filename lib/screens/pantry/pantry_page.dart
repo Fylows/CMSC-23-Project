@@ -7,16 +7,24 @@ import '../../providers/posting/posting_provider.dart';
 import '../../models/posting_model.dart';
 
 class PantryPage extends StatefulWidget {
-  const PantryPage({super.key});
+  final String? initialSearch;
+
+  const PantryPage({this.initialSearch, super.key});
 
   @override
   State<PantryPage> createState() => _PantryPageState();
 }
 
 class _PantryPageState extends State<PantryPage> {
-  final searchController = TextEditingController();
+  late final searchController;
   String selectedFilter = 'available'; // available, expired, claimed, bids, completed, reserved
   bool showOnlyMyItems = false;
+
+  @override
+  void initState() {
+    super.initState();
+    searchController = TextEditingController(text: widget.initialSearch ?? '');
+  }
 
   @override
   void dispose() {
@@ -58,31 +66,6 @@ class _PantryPageState extends State<PantryPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // search bar
-                  TextField(
-                    controller: searchController,
-                    onChanged: (value) => setState(() {
-                      
-                    }),
-                    decoration: InputDecoration(
-                      hintText: 'I\'m looking for...',
-                      prefixIcon: const Icon(Icons.search, color: Color(0xFFFA5800)),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        borderSide: const BorderSide(
-                          color: Color(0xFFFA5800),
-                          width: 2,
-                        ),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
                   // filter tabs
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
