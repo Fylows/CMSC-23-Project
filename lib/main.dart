@@ -14,6 +14,8 @@ import 'package:provider/provider.dart';
 import 'screens/auth/auth_wrapper.dart';
 import 'screens/home/home_page.dart';
 import 'screens/notifications/notifications.dart';
+import 'screens/leaderboard/leaderboard.dart';
+import 'package:elbi_eats/providers/leaderboard/leaderboard_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,6 +32,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => PostingProvider()),
+        ChangeNotifierProvider(create: (_) => LeaderboardProvider()),
       ],
       child: MaterialApp(
         title: 'Elbi Eats',
@@ -41,11 +44,15 @@ class MyApp extends StatelessWidget {
         initialRoute: '/',
         routes: {
           '/home': (context) => const MainScaffold(child: HomePage()),
-          '/post-item': (context) => const PostItemPage(), // this is a modal so it doesnt need a navbar
+          '/post-item': (context) =>
+              const PostItemPage(), // this is a modal so it doesnt need a navbar
 
           '/notifications': (context) => const NotificationsPage(),
           // --- NAV BAR ---
-          '/pantry' : (context) => const MainScaffold(child: PantryPage()),
+          '/pantry': (context) { 
+            final args = ModalRoute.of(context)?.settings.arguments as String?;
+            return MainScaffold(child: PantryPage(initialSearch: args));
+          },
           // '/chat' : (context) => const MainScaffold(currentRoute: '/chat', child: ChatScreen()),
           // '/cart' : (context) => const MainScaffold(currentRoute: '/cart', child: CartScreen()),
 
@@ -53,7 +60,7 @@ class MyApp extends StatelessWidget {
           '/profile': (context) => const ProfilePage(),
           '/order-transactions': (context) => const OrderTransactionsPage(),
           '/posted-items': (context) => const PostedItemsPage(),
-          // '/leaderboard' : (context) => const LeaderboardScreen(),
+          '/leaderboard': (context) => const LeaderboardScreen(),
           // '/settings' : (context) => const SettingsScreen(),
         },
         home: const AuthWrapper(),
