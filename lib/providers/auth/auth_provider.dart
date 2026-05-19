@@ -171,6 +171,8 @@ class AuthProvider extends ChangeNotifier {
     required String lastName,
     required DateTime dateOfBirth,
     required List<String> selectedTags,
+    bool? hideTransactions,
+    String? profilePictureUrl,
   }) async {
     setLoading(true);
     clearError();
@@ -196,8 +198,10 @@ class AuthProvider extends ChangeNotifier {
         username: username,
         dateOfBirth: dateOfBirth,
         selectedTags: selectedTags,
-        createdAt: now,
+        profilePictureUrl: profilePictureUrl ?? user!.profilePictureUrl,
+        hideTransactions: hideTransactions ?? user!.hideTransactions,
         updatedAt: now,
+        createdAt: user!.createdAt ?? now,
       );
 
       // write to firestore

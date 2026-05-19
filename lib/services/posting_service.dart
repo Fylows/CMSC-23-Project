@@ -73,6 +73,8 @@ class PostingService {
     required bool posterVerified,
     required String itemName,
     required String description,
+    required double price,
+    required int stock,
     required File? photoFile, // the photo
     required List<String> selectedTags,
     required DateTime expirationDate,
@@ -102,6 +104,8 @@ class PostingService {
         posterVerified: posterVerified, 
         itemName: itemName, 
         description: description, 
+        price: price,
+        stock: stock,
         photoUrl: photoUrl,
         selectedTags: selectedTags, 
         expirationDate: expirationDate, 
@@ -250,6 +254,15 @@ class PostingService {
       });
     } catch (e) {
       throw Exception('Failed to reject claim: $e');
+    }
+  }
+
+  /// delete a claim
+  Future<void> deleteClaim(String claimId) async {
+    try {
+      await firestore.collection('claims').doc(claimId).delete();
+    } catch (e) {
+      throw Exception('Failed to delete claim: $e');
     }
   }
 

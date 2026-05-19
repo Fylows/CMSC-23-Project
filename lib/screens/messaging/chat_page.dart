@@ -219,8 +219,6 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
-  // ── Message list (unchanged from your original) ────────────────
-
   Widget _buildMessageList() {
     final otherUid = widget.chatId
         .replaceAll(widget.currentUserId, '')
@@ -285,6 +283,7 @@ class _ChatPageState extends State<ChatPage> {
     final isMe = message.senderId == widget.currentUserId;
 
     if (isMe) {
+      // My bubble — right aligned, no avatar or name
       return Align(
         alignment: Alignment.centerRight,
         child: Container(
@@ -310,11 +309,13 @@ class _ChatPageState extends State<ChatPage> {
       );
     }
 
+    // Their bubble — left aligned, with optional avatar and name
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
+          // Avatar — only show on first message in a group
           if (showHeader)
             CircleAvatar(
               radius: 16,
@@ -326,11 +327,14 @@ class _ChatPageState extends State<ChatPage> {
                   : null,
             )
           else
-            const SizedBox(width: 32),
+            const SizedBox(width: 32), // spacer to align non-first bubbles
+
           const SizedBox(width: 8),
+
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Username above first bubble in a group
               if (showHeader)
                 Padding(
                   padding: const EdgeInsets.only(left: 4, bottom: 2),

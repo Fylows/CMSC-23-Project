@@ -1,19 +1,23 @@
 import 'package:flutter/material.dart';
-import '../../models/item_model.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth/auth_provider.dart';
+import '../../providers/posting/posting_provider.dart';
+import '../../models/item_model.dart' as item_model;
+import '../../models/posting_model.dart';
+import 'transaction_detail_page.dart';
 
 class OrderTransactionsPage extends StatelessWidget {
   const OrderTransactionsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Dummy data
-    final List<OrderTransaction> transactions = [
-      OrderTransaction(id: '1', name: 'Pork', quantity: '2kgs', status: 'Pending'),
-      OrderTransaction(id: '2', name: 'Beef', quantity: '5kgs', status: 'To Claim'),
-      OrderTransaction(id: '3', name: 'Cabbage', quantity: '1kg', status: 'Completed'),
-      OrderTransaction(id: '4', name: 'BBQ Sticks', quantity: '20pcs', status: 'Cancelled'),
-      OrderTransaction(id: '5', name: 'Coke', quantity: '1.5L', status: 'Completed'),
-    ];
+    final authProvider = context.watch<AuthProvider>();
+    final postingProvider = context.watch<PostingProvider>();
+    final userId = authProvider.user?.uid;
+
+    if (userId == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -38,46 +42,136 @@ class OrderTransactionsPage extends StatelessWidget {
           child: Container(color: Colors.grey[300], height: 1),
         ),
       ),
-      body: ListView.separated(
-        itemCount: transactions.length,
-        separatorBuilder: (context, index) => const Divider(height: 1),
-        itemBuilder: (context, index) {
-          final t = transactions[index];
-          return ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            leading: Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: const Color(0xFFA35D5D),
-                borderRadius: BorderRadius.circular(8),
+      body: StreamBuilder<List<Claim>>(
+        stream: postingProvider.getUserClaimsStream(userId),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final claims = snapshot.data!;
+          if (claims.isEmpty) {
+            return const Center(
+              child: Text(
+                'No order transactions yet.',
+                style: TextStyle(fontSize: 16, color: Colors.grey),
               ),
-            ),
-            title: Text(
-              t.name,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-            ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(t.quantity, style: const TextStyle(color: Colors.grey)),
-                const SizedBox(height: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: _getStatusColor(t.status),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    t.status,
-                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                  ),
+            );
+          }
+
+          return ListView.separated(
+            itemCount: claims.length,
+            separatorBuilder: (context, index) => const Divider(height: 1),
+            itemBuilder: (context, index) {
+              final claim = claims[index];
+              return FutureBuilder<PostedItem?>(
+                future: postingProvider.postingService.getPosting(
+                  claim.postingId,
                 ),
-              ],
-            ),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              // Redirect to item details (not implemented)
+                builder: (context, postSnapshot) {
+                  final posting = postSnapshot.data;
+                  return ListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    leading: Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFA35D5D),
+                        borderRadius: BorderRadius.circular(8),
+                        image: posting?.photoUrl != null
+                            ? DecorationImage(
+                                image: NetworkImage(posting!.photoUrl!),
+                                fit: BoxFit.cover,
+                              )
+                            : null,
+                      ),
+                      child: posting?.photoUrl == null
+                          ? const Icon(Icons.receipt, color: Colors.white24)
+                          : null,
+                    ),
+                    title: Text(
+                      posting?.itemName ?? 'Unknown item',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 4),
+                        Text(
+                          'Seller: ${posting?.posterName ?? 'Unknown'}',
+                          style: const TextStyle(color: Colors.grey),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Price: ₱ ${posting?.price.toStringAsFixed(2) ?? '0.00'}',
+                          style: const TextStyle(
+                            color: Color(0xFFCB2020),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: _getStatusColor(claim.status),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            claim.status[0].toUpperCase() +
+                                claim.status.substring(1),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      final orderTransaction = item_model.OrderTransaction(
+                        id: claim.id,
+                        name: posting?.itemName ?? 'Unknown item',
+                        imageUrl: posting?.photoUrl,
+                        sellerName: posting?.posterName ?? 'Unknown',
+                        quantity: '1',
+                        price: posting?.price ?? 0.0,
+                        status:
+                            claim.status[0].toUpperCase() +
+                            claim.status.substring(1),
+                        requestedAt: claim.claimedAt,
+                        respondedAt: (claim.status == 'accepted' ||
+                                claim.status == 'rejected' ||
+                                claim.status == 'completed')
+                            ? claim.resolvedAt
+                            : null,
+                        completedAt: (claim.status == 'completed')
+                            ? claim.resolvedAt
+                            : null,
+                      );
+
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => TransactionDetailPage(
+                            transaction: orderTransaction,
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              );
             },
           );
         },
@@ -86,12 +180,18 @@ class OrderTransactionsPage extends StatelessWidget {
   }
 
   Color _getStatusColor(String status) {
-    switch (status) {
-      case 'Pending': return Colors.orange;
-      case 'To Claim': return Colors.pink;
-      case 'Completed': return Colors.green;
-      case 'Cancelled': return Colors.red;
-      default: return Colors.grey;
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return Colors.orange;
+      case 'to claim':
+      case 'accepted':
+        return Colors.pink;
+      case 'completed':
+        return Colors.green;
+      case 'cancelled':
+        return Colors.red;
+      default:
+        return Colors.grey;
     }
   }
 }

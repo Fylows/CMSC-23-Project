@@ -54,10 +54,12 @@ class PostingProvider extends ChangeNotifier {
     required User currentUser,
     required String itemName,
     required String description,
+    required double price,
+    required int stock,
     required File? photoFile,
     required List<String> selectedTags,
     required DateTime expirationDate,
-    required Position? location,  // ← Add this
+    required Position? location, // ← Add this
   }) async {
     setLoading(true);
     clearError();
@@ -86,6 +88,8 @@ class PostingProvider extends ChangeNotifier {
         expirationDate: expirationDate,
         latitude: location?.latitude,
         longitude: location?.longitude,
+        price: price,
+        stock: stock,
       );
 
       userPostings.insert(0, posting);
@@ -207,6 +211,17 @@ class PostingProvider extends ChangeNotifier {
   Future<void> rejectClaim(String claimId) async {
     try {
       await postingService.rejectClaim(claimId);
+      notifyListeners();
+    } catch (e) {
+      errorMessage = e.toString();
+      notifyListeners();
+    }
+  }
+
+  /// delete a claim
+  Future<void> deleteClaim(String claimId) async {
+    try {
+      await postingService.deleteClaim(claimId);
       notifyListeners();
     } catch (e) {
       errorMessage = e.toString();

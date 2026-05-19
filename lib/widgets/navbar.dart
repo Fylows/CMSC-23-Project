@@ -22,33 +22,35 @@ class MainScaffold extends StatelessWidget {
 
     return Scaffold(
       drawer: const CustomDrawer(),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu, color: Colors.black),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
-        ),
-        title: const AppSearchBar(),
-        actions: [
-          Consumer<AuthProvider>(
-            builder: (context, authProvider, _) => IconButton(
-              icon: const Icon(
-                Icons.notifications_outlined,
-                color: Colors.black,
+      appBar: currentRoute == '/cart'
+          ? null
+          : AppBar(
+              backgroundColor: Colors.white,
+              elevation: 0,
+              leading: Builder(
+                builder: (context) => IconButton(
+                  icon: const Icon(Icons.menu, color: Colors.black),
+                  onPressed: () => Scaffold.of(context).openDrawer(),
+                ),
               ),
-              onPressed: () async {
-                Navigator.of(
-                  context,
-                  rootNavigator: true,
-                ).pushNamed('/notifications');
-              },
+              title: const AppSearchBar(),
+              actions: [
+                Consumer<AuthProvider>(
+                  builder: (context, authProvider, _) => IconButton(
+                    icon: const Icon(
+                      Icons.notifications_outlined,
+                      color: Colors.black,
+                    ),
+                    onPressed: () async {
+                      Navigator.of(
+                        context,
+                        rootNavigator: true,
+                      ).pushNamed('/notifications');
+                    },
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
 
       bottomNavigationBar: Theme(
         data: Theme.of(context).copyWith(

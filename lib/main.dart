@@ -3,6 +3,7 @@ import 'package:elbi_eats/providers/auth/auth_provider.dart';
 import 'package:elbi_eats/providers/posting/posting_provider.dart';
 import 'package:elbi_eats/screens/pantry/pantry_page.dart';
 import 'package:elbi_eats/screens/pantry/post_item_page.dart';
+import 'package:elbi_eats/screens/cart/cart_page.dart';
 import 'package:elbi_eats/screens/profile/profile_page.dart';
 import 'package:elbi_eats/screens/profile/order_transactions_page.dart';
 import 'package:elbi_eats/screens/profile/posted_items_page.dart';
@@ -20,7 +21,6 @@ import 'package:elbi_eats/providers/leaderboard/leaderboard_provider.dart';
 import 'package:elbi_eats/screens/messaging/chatlist_page.dart';
 import 'package:elbi_eats/providers/message/message_provider.dart';
 import 'package:elbi_eats/providers/notification/notification_provider.dart';
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
@@ -53,6 +53,7 @@ class MyApp extends StatelessWidget {
           },
         ),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
+
       ],
       child: MaterialApp(
         title: 'Elbi Eats',
@@ -76,7 +77,8 @@ class MyApp extends StatelessWidget {
           '/chat': (context) => const MainScaffold(
             child:
                 ChatListPage(), // ← currentUserId will be set inside ChatListPage using AuthProvider
-          ), // '/cart' : (context) => const MainScaffold(currentRoute: '/cart', child: CartScreen()),
+          ),
+          '/cart': (context) => const MainScaffold(child: CartPage()),
           // --- DRAWER ---
           '/profile': (context) => const ProfilePage(),
           '/order-transactions': (context) => const OrderTransactionsPage(),

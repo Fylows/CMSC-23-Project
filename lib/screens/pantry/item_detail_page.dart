@@ -187,35 +187,45 @@ class ItemDetailPage extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   // status badge
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: item.status == 'available'
-                          ? Colors.green.shade50
-                          : Colors.orange.shade50,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: item.status == 'available'
-                            ? Colors.green
-                            : Colors.orange,
-                      ),
-                    ),
-                    child: Text(
-                      item.status.replaceFirst(
-                        item.status[0],
-                        item.status[0].toUpperCase(),
-                      ),
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: item.status == 'available'
-                            ? Colors.green
-                            : Colors.orange,
-                      ),
-                    ),
+                  StreamBuilder<List<Claim>>(
+                    stream: postingProvider.getClaimsForPostingStream(item.id),
+                    builder: (context, snapshot) {
+                      String displayStatus = item.status;
+                      Color badgeColor = item.status == 'available' ? Colors.green : Colors.orange;
+                      Color bgColor = item.status == 'available' ? Colors.green.shade50 : Colors.orange.shade50;
+
+                      if (item.status == 'available' && snapshot.hasData) {
+                        final pendingClaims = snapshot.data!.where((c) => c.status == 'pending').toList();
+                        if (pendingClaims.length > 1) {
+                          displayStatus = 'has bids';
+                          badgeColor = Colors.red;
+                          bgColor = Colors.red.shade50;
+                        }
+                      }
+
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: bgColor,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: badgeColor),
+                        ),
+                        child: Text(
+                          displayStatus.replaceFirst(
+                            displayStatus[0],
+                            displayStatus[0].toUpperCase(),
+                          ),
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: badgeColor,
+                          ),
+                        ),
+                      );
+                    },
                   ),
                   const SizedBox(height: 32),
                 ],
@@ -583,9 +593,11 @@ Widget _buildClaimCard(
                       ),
                     );
                   } catch (e) {
-                    messenger.showSnackBar(
-                      SnackBar(content: Text('Error: $e')),
-                    );
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+                    }
                   }
                 },
                 style: OutlinedButton.styleFrom(
@@ -614,9 +626,9 @@ Widget _buildClaimCard(
                     }
                   } catch (e) {
                     if (context.mounted) {
-                      messenger.showSnackBar(
-                        SnackBar(content: Text('Error: $e')),
-                      );
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text('Error: $e')));
                     }
                   }
                 },

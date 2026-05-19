@@ -11,6 +11,7 @@ class User {
   final bool isVerified;
   final String? verificationSelfieUrl;
   final int contributorScore; // Defaults to 0 or 67
+  final bool hideTransactions;
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final double? latitude;
@@ -31,6 +32,7 @@ class User {
     this.isVerified = false,
     this.verificationSelfieUrl,
     this.contributorScore = 0,
+    this.hideTransactions = false,
     this.createdAt,
     this.updatedAt,
     this.latitude,
@@ -54,6 +56,7 @@ class User {
       'isVerified': isVerified,
       'verificationSelfieUrl': verificationSelfieUrl,
       'contributorScore': contributorScore,
+      'hideTransactions': hideTransactions,
       'createdAt': createdAt,
       'updatedAt': updatedAt,
       'latitude': latitude,
@@ -79,6 +82,7 @@ class User {
       isVerified: map['isVerified'] ?? false,
       verificationSelfieUrl: map['verificationSelfieUrl'],
       contributorScore: map['contributorScore'] ?? 0,
+      hideTransactions: map['hideTransactions'] ?? false,
       createdAt: map['createdAt']?.toDate(),
       updatedAt: map['updatedAt']?.toDate(),
       latitude: (map['latitude'] as num?)?.toDouble(),
@@ -105,10 +109,11 @@ class User {
     String? lastName,
     DateTime? dateOfBirth,
     List<String>? selectedTags,
-    String? profilePicutreUrl,
+    String? profilePictureUrl,
     bool? isVerified,
     String? verificationSelfieUrl,
     int? contributorScore,
+    bool? hideTransactions,
     DateTime? createdAt,
     DateTime? updatedAt,
     double? latitude,
@@ -125,10 +130,11 @@ class User {
       lastName: lastName ?? this.lastName,
       dateOfBirth: dateOfBirth ?? this.dateOfBirth,
       selectedTags: selectedTags ?? this.selectedTags,
-      profilePictureUrl: profilePicutreUrl ?? this.profilePictureUrl,
+      profilePictureUrl: profilePictureUrl ?? this.profilePictureUrl,
       isVerified: isVerified ?? this.isVerified,
       verificationSelfieUrl: verificationSelfieUrl ?? this.verificationSelfieUrl,
       contributorScore: contributorScore ?? this.contributorScore,
+      hideTransactions: hideTransactions ?? this.hideTransactions,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       latitude: latitude ?? this.latitude,

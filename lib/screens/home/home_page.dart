@@ -8,6 +8,7 @@ import 'package:elbi_eats/providers/leaderboard/leaderboard_provider.dart';
 import 'package:elbi_eats/providers/auth/auth_provider.dart';
 import 'package:elbi_eats/providers/posting/posting_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:elbi_eats/models/posting_model.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -20,7 +21,6 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final leaderboard = context.watch<LeaderboardProvider>();
-    final authProvider = context.watch<AuthProvider>();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF2F2F2),
@@ -30,11 +30,9 @@ class _HomePageState extends State<HomePage> {
           children: [
             LeaderboardSection(leaderboard: leaderboard),
             const SizedBox(height: 14),
-            _TopPicksSection(),
+            const _TopPicksSection(),
             const SizedBox(height: 14),
-            authProvider.user != null
-                ? _PostedItemsSection(userId: authProvider.user!.uid)
-                : const SizedBox.shrink(),
+            const _UserPostedItemsSection(),
             const SizedBox(height: 14),
           ],
         ),
@@ -42,7 +40,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-
 // ─── Top Picks Section ────────────────────────────────────────────────────────
 
 class _TopPicksSection extends StatelessWidget {
@@ -93,11 +90,12 @@ class _TopPicksSection extends StatelessWidget {
               }
 
               final items = snapshot.data!;
-              
+
               // Take first 3 items
               final featured = items.isNotEmpty ? items[0] : null;
-              final secondary =
-                  items.length > 1 ? items.sublist(1, items.length > 3 ? 3 : items.length) : [];
+              final secondary = items.length > 1
+                  ? items.sublist(1, items.length > 3 ? 3 : items.length)
+                  : [];
 
               return Column(
                 children: [
@@ -111,17 +109,21 @@ class _TopPicksSection extends StatelessWidget {
                         ),
                       ),
                       child: ProductCard(
-                        imageUrl: featured.photoUrl ??
+                        imageUrl:
+                            featured.photoUrl ??
                             'https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=200',
                         name: featured.itemName,
-                        price: 'Exp: ${DateFormat('MM/dd').format(featured.expirationDate)}',
+                        price:
+                            'Exp: ${DateFormat('MM/dd').format(featured.expirationDate)}',
                         meetUp: featured.posterName,
-                        seller: featured.posterVerified ? '✓ Verified' : 'Not verified',
+                        seller: featured.posterVerified
+                            ? '✓ Verified'
+                            : 'Not verified',
                       ),
                     )
                   else
                     const Text('No featured item'),
-                  
+
                   if (secondary.isNotEmpty) ...[
                     const SizedBox(height: 10),
                     // two smaller cards side by side
@@ -139,7 +141,8 @@ class _TopPicksSection extends StatelessWidget {
                                 ),
                               ),
                               child: SmallProductCard(
-                                imageUrl: item.photoUrl ??
+                                imageUrl:
+                                    item.photoUrl ??
                                     'https://images.unsplash.com/photo-1569050467447-ce54b3bbc37d?w=200',
                                 name: item.itemName,
                               ),
@@ -172,188 +175,147 @@ class _TopPicksSection extends StatelessWidget {
 
 // ─── Posted Items Section ─────────────────────────────────────────────────────
 
-class _PostedItemsSection extends StatelessWidget {
-  final String userId;
-
-  const _PostedItemsSection({required this.userId});
+class _UserPostedItemsSection extends StatelessWidget {
+  const _UserPostedItemsSection();
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
     final postingProvider = context.watch<PostingProvider>();
+    final userId = authProvider.user?.uid;
 
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: const Color(0xFF6BBF6B),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      padding: const EdgeInsets.all(14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Your Posted Items',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
+    if (userId == null) {
+      return const SizedBox.shrink();
+    }
+
+    return StreamBuilder<List<PostedItem>>(
+      stream: postingProvider.getUserPostingsStream(userId),
+      builder: (context, snapshot) {
+        final items = snapshot.data ?? [];
+
+        return Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: const Color(0xFF6BBF6B),
+            borderRadius: BorderRadius.circular(16),
           ),
-          const SizedBox(height: 10),
-          StreamBuilder(
-            stream: postingProvider.getUserPostingsStream(userId),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const SizedBox(
-                  height: 120,
-                  child: Center(child: CircularProgressIndicator()),
-                );
-              }
-
-              if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return SizedBox(
-                  height: 120,
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text(
-                          'You haven\'t posted any items yet',
-                          style: TextStyle(color: Colors.white70),
-                        ),
-                        const SizedBox(height: 8),
-                        TextButton(
-                          onPressed: () =>
-                              Navigator.pushNamed(context, '/post-item'),
-                          child: const Text(
-                            'Post an item',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Your Posted Items',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
                     ),
                   ),
-                );
-              }
-
-              final items = snapshot.data!;
-              
-              // Count stats
-              final available = items.where((i) => i.status == 'available').length;
-              final claimed = items.where((i) => i.status == 'reserved').length;
-              final completed = items.where((i) => i.status == 'completed').length;
-
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // stats row
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _StatChip(
-                        label: 'Total',
-                        value: items.length.toString(),
-                      ),
-                      _StatChip(
-                        label: 'Available',
-                        value: available.toString(),
-                      ),
-                      _StatChip(
-                        label: 'Claimed',
-                        value: claimed.toString(),
-                      ),
-                      _StatChip(
-                        label: 'Completed',
-                        value: completed.toString(),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  
-                  // Horizontal scrollable list
-                  SizedBox(
-                    height: 140,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: items.length,
-                      itemBuilder: (context, index) {
-                        final item = items[index];
-                        return Padding(
-                          padding: EdgeInsets.only(
-                            right: 10,
-                            left: index == 0 ? 0 : 0,
-                          ),
-                          child: GestureDetector(
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => ItemDetailPage(item: item),
-                              ),
-                            ),
-                            child: Container(
-                              width: 120,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12),
-                                color: Colors.white,
-                              ),
-                              child: Column(
-                                children: [
-                                  Expanded(
-                                    child: ClipRRect(
-                                      borderRadius: const BorderRadius.only(
-                                        topLeft: Radius.circular(12),
-                                        topRight: Radius.circular(12),
-                                      ),
-                                      child: Image.network(
-                                        item.photoUrl ?? '',
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) =>
-                                            const Icon(Icons.image),
-                                      ),
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(8),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          item.itemName,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                        Text(
-                                          item.status,
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            color: _getStatusColor(item.status),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      },
+                  IconButton(
+                    onPressed: () =>
+                        Navigator.pushNamed(context, '/posted-items'),
+                    icon: const Icon(
+                      Icons.arrow_forward_ios,
+                      color: Colors.white,
+                      size: 18,
                     ),
                   ),
                 ],
-              );
-            },
+              ),
+              const SizedBox(height: 12),
+              if (items.isEmpty)
+                const Text(
+                  'You have no posted items yet.',
+                  style: TextStyle(color: Colors.white70),
+                )
+              else
+                SizedBox(
+                  height: 200,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: items.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 12),
+                    itemBuilder: (context, index) {
+                      final item = items[index];
+                      return GestureDetector(
+                        onTap: () =>
+                            Navigator.pushNamed(context, '/posted-items'),
+                        child: Container(
+                          width: 140,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Expanded(
+                                child: ClipRRect(
+                                  borderRadius: const BorderRadius.vertical(
+                                    top: Radius.circular(16),
+                                  ),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF9B7FD4),
+                                      image: item.photoUrl != null
+                                          ? DecorationImage(
+                                              image: NetworkImage(
+                                                item.photoUrl!,
+                                              ),
+                                              fit: BoxFit.cover,
+                                            )
+                                          : null,
+                                    ),
+                                    child: item.photoUrl == null
+                                        ? const Icon(
+                                            Icons.fastfood,
+                                            color: Colors.white30,
+                                            size: 36,
+                                          )
+                                        : null,
+                                  ),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(10),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      item.itemName,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                        fontSize: 14,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 5),
+                                    Text(
+                                      'Stock ${item.stock}',
+                                      style: const TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -371,40 +333,13 @@ class _PostedItemsSection extends StatelessWidget {
   }
 }
 
-class _StatChip extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _StatChip({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-          ),
-        ),
-        Text(
-          label,
-          style: const TextStyle(color: Colors.white70, fontSize: 11),
-        ),
-      ],
-    );
-  }
-}
-
 class LeaderboardSection extends StatelessWidget {
   final LeaderboardProvider leaderboard;
 
   const LeaderboardSection({super.key, required this.leaderboard});
   final tempPfp =
       'https://www.gravatar.com/avatar/?d=mp'; // ← grey silhouette, no face;
-  
+
   @override
   Widget build(BuildContext context) {
     return Container(
