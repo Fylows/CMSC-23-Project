@@ -38,6 +38,7 @@ class NotificationService {
     FirebaseMessaging.onMessageOpenedApp.listen(handleMessageOpenedApp);
   }
 
+  @pragma('vm:entry-point')
   static Future<void> handleBackgroundMessage(RemoteMessage message) async {
     if (kDebugMode) {
       print('Background message message: ${message.notification?.title}');

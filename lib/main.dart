@@ -19,7 +19,7 @@ import 'screens/leaderboard/leaderboard.dart';
 import 'package:elbi_eats/providers/leaderboard/leaderboard_provider.dart';
 import 'package:elbi_eats/screens/messaging/chatlist_page.dart';
 import 'package:elbi_eats/providers/message/message_provider.dart';
-import 'package:elbi_eats/services/notification_service.dart';
+import 'package:elbi_eats/providers/notification/notification_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -52,6 +52,7 @@ class MyApp extends StatelessWidget {
             return previous ?? LeaderboardProvider(uid);
           },
         ),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
       ],
       child: MaterialApp(
         title: 'Elbi Eats',
