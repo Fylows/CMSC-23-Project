@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
 import '../models/posting_model.dart';
+import '../models/claim_model.dart';
 
 /// onboarding for using firebase_storage
 /// https://youtu.be/4RcK1yKZtBA?si=lwRN1quc6_3wo8lB
@@ -181,7 +182,10 @@ class PostingService {
         throw Exception('Posting not found');
       }
 
-      final posterId = postingDoc.data()?['posterId'] ?? '';
+      final postingData = postingDoc.data() ?? {};
+      final posterId = postingData['posterId'] ?? '';
+      final posterName = postingData['posterName'] ?? '';
+      final itemName = postingData['itemName'] ?? '';
 
       final claimId = firestore.collection('claims').doc().id;
       final claim = Claim(
@@ -189,7 +193,9 @@ class PostingService {
         postingId: postingId, 
         posterId: posterId,
         claimerId: claimerId, 
-        claimerName: claimerName, 
+        claimerName: claimerName,
+        posterName: posterName,
+        itemName: itemName,
         status: 'pending', 
         claimedAt: DateTime.now(),
       );

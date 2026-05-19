@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/posting/posting_provider.dart';
 import '../../models/posting_model.dart';
+import '../../models/claim_model.dart';
 
 class PantryPage extends StatefulWidget {
   final String? initialSearch;
