@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:geolocator/geolocator.dart';
 import '../../models/posting_model.dart';
+import '../../models/claim_model.dart';
 import '../../models/user/user_model.dart';
 import '../../services/posting_service.dart';
 import '../message/message_provider.dart';

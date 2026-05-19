@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../models/posting_model.dart';
+import '../../models/claim_model.dart';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/posting/posting_provider.dart';
 import '../../providers/message/message_provider.dart';
