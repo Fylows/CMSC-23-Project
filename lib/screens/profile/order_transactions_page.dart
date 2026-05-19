@@ -107,6 +107,14 @@ class OrderTransactionsPage extends StatelessWidget {
                           'Seller: ${posting?.posterName ?? 'Unknown'}',
                           style: const TextStyle(color: Colors.grey),
                         ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Price: ₱ ${posting?.price.toStringAsFixed(2) ?? '0.00'}',
+                          style: const TextStyle(
+                            color: Color(0xFFCB2020),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                         const SizedBox(height: 6),
                         Container(
                           padding: const EdgeInsets.symmetric(
@@ -135,10 +143,21 @@ class OrderTransactionsPage extends StatelessWidget {
                         id: claim.id,
                         name: posting?.itemName ?? 'Unknown item',
                         imageUrl: posting?.photoUrl,
+                        sellerName: posting?.posterName ?? 'Unknown',
                         quantity: '1',
+                        price: posting?.price ?? 0.0,
                         status:
                             claim.status[0].toUpperCase() +
                             claim.status.substring(1),
+                        requestedAt: claim.claimedAt,
+                        respondedAt: (claim.status == 'accepted' ||
+                                claim.status == 'rejected' ||
+                                claim.status == 'completed')
+                            ? claim.resolvedAt
+                            : null,
+                        completedAt: (claim.status == 'completed')
+                            ? claim.resolvedAt
+                            : null,
                       );
 
                       Navigator.push(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:elbi_eats/providers/auth/auth_provider.dart';
 import 'package:elbi_eats/providers/posting/posting_provider.dart';
+import 'package:elbi_eats/providers/leaderboard/leaderboard_provider.dart';
 import 'package:elbi_eats/widgets/custom_drawer.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
@@ -322,12 +323,14 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     final postingProvider = Provider.of<PostingProvider>(context);
+    final leaderboardProvider = Provider.of<LeaderboardProvider>(context);
     final user = authProvider.user;
 
     if (user == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
+    final leaderboardUser = leaderboardProvider.currentUser;
     final fullName = '${user.firstName ?? ''} ${user.lastName ?? ''}'.trim();
 
     return Scaffold(
@@ -499,16 +502,16 @@ class _ProfilePageState extends State<ProfilePage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  '${user.contributorScore}',
+                                  '${leaderboardUser?.rank ?? '-'}',
                                   style: const TextStyle(
                                     fontSize: 32,
                                     fontWeight: FontWeight.bold,
                                     color: Color(0xFFFA5800),
                                   ),
                                 ),
-                                const Text(
+                                Text(
                                   'Contributor',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontSize: 14,
                                     color: Color(0xFFFA5800),
                                     fontWeight: FontWeight.bold,
@@ -987,8 +990,18 @@ class _ProfilePageState extends State<ProfilePage> {
                 id: claim.id,
                 name: title,
                 imageUrl: imageUrl,
+                sellerName: posting?.posterName ?? 'Unknown',
                 quantity: '1', // Placeholder or add to claim
+                price: posting?.price ?? 0.0,
                 status: statusLabel,
+                requestedAt: claim.claimedAt,
+                respondedAt: (claim.status == 'accepted' ||
+                        claim.status == 'rejected' ||
+                        claim.status == 'completed')
+                    ? claim.resolvedAt
+                    : null,
+                completedAt:
+                    (claim.status == 'completed') ? claim.resolvedAt : null,
               );
               Navigator.push(
                 context,

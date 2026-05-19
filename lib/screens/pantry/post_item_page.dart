@@ -16,6 +16,7 @@ class _PostItemPageState extends State<PostItemPage> {
   final itemNameController = TextEditingController();
   final descriptionController = TextEditingController();
   final stockController = TextEditingController(text: '0');
+  final priceController = TextEditingController(text: '0.0');
 
   File? selectedImage;
   final ImagePicker _imagePicker = ImagePicker();
@@ -255,6 +256,17 @@ class _PostItemPageState extends State<PostItemPage> {
                             ),
                           ),
                           const Divider(),
+                          GestureDetector(
+                            onTap: () => _showTextEditDialog('price', priceController, isNumeric: true),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text('Price', style: TextStyle(fontWeight: FontWeight.bold)),
+                                Text('₱ ${priceController.text}'),
+                              ],
+                            ),
+                          ),
+                          const Divider(),
                           const Text('Description', style: TextStyle(fontWeight: FontWeight.bold)),
                           const SizedBox(height: 5),
                           GestureDetector(
@@ -311,6 +323,8 @@ class _PostItemPageState extends State<PostItemPage> {
                           currentUser: user!,
                           itemName: itemNameController.text,
                           description: descriptionController.text,
+                          price: double.tryParse(priceController.text) ?? 0.0,
+                          stock: int.tryParse(stockController.text) ?? 0,
                           photoFile: selectedImage,
                           selectedTags: selectedTags.toList(),
                           expirationDate: DateTime.now().add(const Duration(days: 7)), // Default

@@ -54,6 +54,15 @@ class TransactionDetailPage extends StatelessWidget {
                             transaction.name,
                             style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
                           ),
+                          const SizedBox(height: 8),
+                          Text(
+                            '₱ ${transaction.price.toStringAsFixed(2)}',
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFCB2020),
+                            ),
+                          ),
                           const SizedBox(height: 10),
                           Row(
                             children: [
@@ -71,33 +80,43 @@ class TransactionDetailPage extends StatelessWidget {
                             ],
                           ),
                           const Divider(height: 32),
-                          const ListTile(
-                            leading: Icon(Icons.person_outline),
-                            title: Text('Seller: Comm Member 1'),
+                          ListTile(
+                            leading: const Icon(Icons.person_outline),
+                            title: Text('Seller: ${transaction.sellerName ?? 'Unknown'}'),
                             contentPadding: EdgeInsets.zero,
                           ),
                           const Divider(height: 32),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: const [
-                              Text('Transaction', style: TextStyle(fontWeight: FontWeight.bold)),
-                              Text('Details', style: TextStyle(fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
                               Text(
-                                DateFormat('MM/dd/yyyy | hh:mm a').format(DateTime.now()),
-                                style: const TextStyle(fontSize: 12),
+                                'Transaction',
+                                style: TextStyle(fontWeight: FontWeight.bold),
                               ),
-                              const Text(
-                                'You requested the item',
-                                style: TextStyle(fontSize: 12),
+                              Text(
+                                'Details',
+                                style: TextStyle(fontWeight: FontWeight.bold),
                               ),
                             ],
                           ),
+                          const SizedBox(height: 16),
+                          if (transaction.requestedAt != null)
+                            _buildTransactionRow(
+                              transaction.requestedAt!,
+                              'You requested the item',
+                            ),
+                          if (transaction.respondedAt != null)
+                            _buildTransactionRow(
+                              transaction.respondedAt!,
+                              transaction.status == 'Rejected'
+                                  ? 'Seller rejected your order'
+                                  : 'Seller accepted your order',
+                            ),
+                          if (transaction.completedAt != null)
+                            _buildTransactionRow(
+                              transaction.completedAt!,
+                              'Order complete',
+                            ),
                         ],
                       ),
                     ),
@@ -149,7 +168,29 @@ class TransactionDetailPage extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.black54),
       ),
-      child: Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+      child: Text(
+        label,
+        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+      ),
+    );
+  }
+
+  Widget _buildTransactionRow(DateTime date, String details) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            DateFormat('MM/dd/yyyy | hh:mm a').format(date),
+            style: const TextStyle(fontSize: 12),
+          ),
+          Text(
+            details,
+            style: const TextStyle(fontSize: 12),
+          ),
+        ],
+      ),
     );
   }
 
