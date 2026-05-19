@@ -21,6 +21,8 @@ import 'package:elbi_eats/providers/leaderboard/leaderboard_provider.dart';
 import 'package:elbi_eats/screens/messaging/chatlist_page.dart';
 import 'package:elbi_eats/providers/message/message_provider.dart';
 import 'package:elbi_eats/providers/notification/notification_provider.dart';
+import 'package:elbi_eats/screens/profile/settings_page.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
@@ -53,7 +55,6 @@ class MyApp extends StatelessWidget {
           },
         ),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
-
       ],
       child: MaterialApp(
         title: 'Elbi Eats',
@@ -84,7 +85,7 @@ class MyApp extends StatelessWidget {
           '/order-transactions': (context) => const OrderTransactionsPage(),
           '/posted-items': (context) => const PostedItemsPage(),
           '/leaderboard': (context) => const LeaderboardScreen(),
-          // '/settings' : (context) => const SettingsScreen(),
+          '/settings': (context) => const SettingsPage(),
         },
         home: const AuthWrapper(),
       ),
