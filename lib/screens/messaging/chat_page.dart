@@ -219,8 +219,6 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
-  // ── Message list (unchanged from your original) ────────────────
-
   Widget _buildMessageList() {
     final otherUid = widget.chatId
         .replaceAll(widget.currentUserId, '')

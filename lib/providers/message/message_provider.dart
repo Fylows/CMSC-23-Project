@@ -72,14 +72,15 @@ class MessageProvider extends ChangeNotifier {
   // ─── Get or Create Chat ──────────────────────────────────────────────────
 
   /// Returns chatId. Creates the doc if it doesn't exist.
-  Future<String?> getOrCreateChat(
-    String otherUserId,
-    String otherUserName,
-    String itemId,
-    String itemName,
-    String currentName,
+  Future<String?> getOrCreateChat({
+    required String otherUserId,
+    required String otherUserName,
+    required String itemId,
+    required String itemName,
+    required String currentUserName,
+    required String claimerId,
     String? claimingId,
-  ) async {
+  }) async {
     final currentUid = _auth.currentUser?.uid;
     if (currentUid == null) return null;
 
@@ -96,7 +97,10 @@ class MessageProvider extends ChangeNotifier {
       if (!chatDoc.exists) {
         await chatRef.set({
           'members': sorted,
-          'memberNames': {currentUid: currentName, otherUserId: otherUserName},
+          'memberNames': {
+            currentUid: currentUserName,
+            otherUserId: otherUserName,
+          },
           'itemId': itemId,
           'itemName': itemName,
           'lastMessage': '',
@@ -104,7 +108,7 @@ class MessageProvider extends ChangeNotifier {
           'lastMessageTime': FieldValue.serverTimestamp(),
           'createdAt': FieldValue.serverTimestamp(),
           'claimingId': claimingId,
-          'claimerUid': currentUid,
+          'claimerUid': claimerId,
           'claimed': false,
           'claimTime': null,
         });

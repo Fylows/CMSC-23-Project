@@ -237,12 +237,14 @@ class ItemDetailPage extends StatelessWidget {
                       final chatId = await context
                           .read<MessageProvider>()
                           .getOrCreateChat(
-                            item.posterId,
-                            item.posterName,
-                            item.id,
-                            item.itemName,
-                            authProvider.user?.displayName ?? 'Anonymous',
-                            null,
+                            otherUserId: item.posterId,
+                            otherUserName: item.posterName,
+                            itemId: item.id,
+                            itemName: item.itemName,
+                            currentUserName:
+                                authProvider.user?.displayName ?? 'Anonymous',
+                            claimerId: authProvider.user!.uid,
+                            claimingId: null,
                           );
                       if (chatId != null && context.mounted) {
                         Navigator.push(
@@ -542,12 +544,14 @@ Widget _buildClaimCard(
 
                     // Step 2 — create the chat
                     final chatId = await messageProvider.getOrCreateChat(
-                      claim.claimerId,
-                      claim.claimerName,
-                      item.id,
-                      item.itemName,
-                      claim.claimerName,
-                      claim.id,
+                      otherUserId: claim.claimerId,
+                      otherUserName: claim.claimerName,
+                      itemId: item.id,
+                      itemName: item.itemName,
+                      currentUserName:
+                          authProvider.user?.displayName ?? 'Anonymous',
+                      claimerId: claim.claimerId,
+                      claimingId: claim.id,
                     );
 
                     if (chatId != null) {
