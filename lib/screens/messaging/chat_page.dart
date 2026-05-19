@@ -71,6 +71,47 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
+  // -- pick date ----
+  Future<void> _onUpdateClaimDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    if (picked == null || !mounted) return;
+
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+    if (time == null || !mounted) return;
+
+    final claimDate = DateTime(
+      picked.year,
+      picked.month,
+      picked.day,
+      time.hour,
+      time.minute,
+    );
+
+    await FirebaseFirestore.instance
+        .collection('chats')
+        .doc(widget.chatId)
+        .update({'claimDate': Timestamp.fromDate(claimDate)});
+    final formatted =
+        '${picked.month}/${picked.day}/${picked.year} at ${time.format(context)}';
+    await context.read<MessageProvider>().sendMessage(
+      widget.chatId,
+      'The pick-up time has been set to $formatted. See you then!',
+    );
+    if (mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Claim date updated!')));
+    }
+  }
+
   // ── QR: Owner generates ────────────────────────────────────────
 
   void _onGenerateQr({
@@ -209,7 +250,10 @@ class _ChatPageState extends State<ChatPage> {
                             ),
                           ),
                         )
-                      : _buildInputBar(claimed);
+                      : _buildInputBar(
+                          claimed,
+                          claimerUID: snapshot.data?['claimerUid'] as String?,
+                        );
                 },
               ),
             ],
@@ -372,7 +416,7 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
-  Widget _buildInputBar(isCompleted) {
+  Widget _buildInputBar(isCompleted, {String? claimerUID}) {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
@@ -418,6 +462,19 @@ class _ChatPageState extends State<ChatPage> {
                       onSubmitted: (_) => _sendMessage(),
                     ),
                   ),
+                  if (widget.currentUserId != claimerUID) ...[
+                    IconButton(
+                      onPressed: _onUpdateClaimDate,
+                      icon: const Icon(Icons.schedule_rounded),
+                      color: Theme.of(context).colorScheme.primary,
+                      style: IconButton.styleFrom(
+                        backgroundColor: Theme.of(
+                          context,
+                        ).colorScheme.primaryContainer,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                  ],
                   const SizedBox(width: 8),
                   IconButton(
                     onPressed: _sendMessage,
