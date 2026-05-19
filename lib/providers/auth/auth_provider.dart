@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/user/user_model.dart';
 import '../../services/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:elbi_eats/services/location_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   final AuthService authService = AuthService();
@@ -50,13 +51,14 @@ class AuthProvider extends ChangeNotifier {
           'uid': uid,
         });
 
-        // save FCM token to Firestore (FCM stands for Firebase Cloud Messaging)
-        final token =  await NotificationService().getToken();
+        final token = await NotificationService().getToken();
         if (token != null) {
           await firestore.collection('users').doc(uid).update({
             'fcmTokens': FieldValue.arrayUnion([token]),
           });
         }
+
+        await saveUserLocation(uid);
 
       } else {
         // fallback if doc doesnt exist
@@ -238,5 +240,15 @@ class AuthProvider extends ChangeNotifier {
 
   void clearError() {
     errorMessage = null;
+  }
+
+  // In your login/signup method after user is loaded:
+  Future<void> saveUserLocation(String uid) async {
+    final location = await LocationService().getCurrentLocation();
+    await firestore.collection('users').doc(uid).update({
+      'latitude': location?.latitude ?? 0,
+      'longitude': location?.longitude ?? 0,
+      'discoveryRadius': 5.0, // default 5km
+    });
   }
 }

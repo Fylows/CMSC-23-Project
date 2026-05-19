@@ -13,6 +13,9 @@ class User {
   final int contributorScore; // Defaults to 0 or 67
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final double? latitude;
+  final double? longitude;
+  final double discoveryRadius; // in km, default 5.0
 
   User({
     required this.uid,
@@ -29,6 +32,9 @@ class User {
     this.contributorScore = 0,
     this.createdAt,
     this.updatedAt,
+    this.latitude,
+    this.longitude,
+    this.discoveryRadius = 5.0,
   });
 
   // convert user to map so we can save to firestore
@@ -48,6 +54,9 @@ class User {
       'contributorScore': contributorScore,
       'createdAt': createdAt,
       'updatedAt': updatedAt,
+      'latitude': latitude,
+      'longitude': longitude,
+      'discoveryRadius': discoveryRadius,
     };
   }
 
@@ -69,6 +78,9 @@ class User {
       contributorScore: map['contributorScore'] ?? 0,
       createdAt: map['createdAt']?.toDate(),
       updatedAt: map['updatedAt']?.toDate(),
+      latitude: map['latitude'],
+      longitude: map['longitude'],
+      discoveryRadius: map['discoveryRadius'] ?? 5.0,
     );
   }
 
@@ -88,6 +100,9 @@ class User {
     int? contributorScore,
     DateTime? createdAt,
     DateTime? updatedAt,
+    double? latitude,
+    double? longitude,
+    double? discoveryRadius,
   }) {
     return User(
       uid: uid ?? this.uid,
@@ -104,6 +119,9 @@ class User {
       contributorScore: contributorScore ?? this.contributorScore,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      discoveryRadius: discoveryRadius ?? this.discoveryRadius,
       
     );
   }

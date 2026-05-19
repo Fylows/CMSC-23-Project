@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
+import 'package:geolocator/geolocator.dart';
 import '../../models/posting_model.dart';
 import '../../models/user/user_model.dart';
 import '../../services/posting_service.dart';
@@ -56,12 +57,12 @@ class PostingProvider extends ChangeNotifier {
     required File? photoFile,
     required List<String> selectedTags,
     required DateTime expirationDate,
+    required Position? location,  // ← Add this
   }) async {
     setLoading(true);
     clearError();
 
     try {
-      // fetch full name from firestore users collection
       final userDoc = await postingService.firestore
           .collection('users')
           .doc(currentUser.uid)
@@ -83,14 +84,15 @@ class PostingProvider extends ChangeNotifier {
         photoFile: photoFile,
         selectedTags: selectedTags,
         expirationDate: expirationDate,
+        latitude: location?.latitude,
+        longitude: location?.longitude,
       );
 
-      // add to local list
       userPostings.insert(0, posting);
       notifyListeners();
     } catch (e) {
       setError('Failed to create posting: ${e.toString()}');
-      rethrow; // send error to UI
+      rethrow;
     } finally {
       setLoading(false);
     }
