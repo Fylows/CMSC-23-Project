@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:elbi_eats/providers/auth/auth_provider.dart';
 import 'package:elbi_eats/screens/auth/auth_wrapper.dart';
+import 'package:elbi_eats/screens/profile/settings_page.dart';
 
 class CustomDrawer extends StatelessWidget {
   const CustomDrawer({super.key});
@@ -72,11 +73,18 @@ class CustomDrawer extends StatelessWidget {
                 }
               },
             ),
+            
             _buildDrawerItem(
               context,
               icon: Icons.settings_outlined,
               title: 'Settings',
-              onTap: () {},
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SettingsPage()),
+                );
+              },
             ),
 
             const Spacer(),

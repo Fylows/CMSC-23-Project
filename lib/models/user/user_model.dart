@@ -16,6 +16,7 @@ class User {
   final double? latitude;
   final double? longitude;
   final double discoveryRadius; // in km, default 5.0
+  final Map<String, bool>? notificationPreferences;
 
   User({
     required this.uid,
@@ -35,6 +36,7 @@ class User {
     this.latitude,
     this.longitude,
     this.discoveryRadius = 5.0,
+    this.notificationPreferences,
   });
 
   // convert user to map so we can save to firestore
@@ -57,6 +59,7 @@ class User {
       'latitude': latitude,
       'longitude': longitude,
       'discoveryRadius': discoveryRadius,
+      'notificationPreferences': notificationPreferences,
     };
   }
 
@@ -68,7 +71,7 @@ class User {
       email: map['email'] ?? '',
       displayName: map['displayName'],
       username: map['username'],
-      firstName: map['firstName'] ?? map['firstname'], // fallback to old
+      firstName: map['firstName'] ?? map['firstname'],
       lastName: map['lastName'],
       dateOfBirth: map['dateOfBirth']?.toDate(),
       selectedTags: List<String>.from(map['selectedTags'] ?? []),
@@ -78,9 +81,17 @@ class User {
       contributorScore: map['contributorScore'] ?? 0,
       createdAt: map['createdAt']?.toDate(),
       updatedAt: map['updatedAt']?.toDate(),
-      latitude: map['latitude'],
-      longitude: map['longitude'],
-      discoveryRadius: map['discoveryRadius'] ?? 5.0,
+      latitude: (map['latitude'] as num?)?.toDouble(),
+      longitude: (map['longitude'] as num?)?.toDouble(),
+      discoveryRadius: (map['discoveryRadius'] as num?)?.toDouble() ?? 5.0,
+      notificationPreferences: map['notificationPreferences'] != null
+          ? Map<String, bool>.from(map['notificationPreferences'] as Map)
+          : {
+            'chat': true,
+            'claim': true,
+            'claimStatus': true,
+            'posting': true,
+          },
     );
   }
 
@@ -103,6 +114,7 @@ class User {
     double? latitude,
     double? longitude,
     double? discoveryRadius,
+    Map<String, bool>? notificationPreferences,
   }) {
     return User(
       uid: uid ?? this.uid,
@@ -122,6 +134,7 @@ class User {
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
       discoveryRadius: discoveryRadius ?? this.discoveryRadius,
+      notificationPreferences: notificationPreferences ?? this.notificationPreferences,
       
     );
   }
