@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import 'package:elbi_eats/providers/qr/qr_provider.dart';
@@ -14,7 +15,6 @@ class ConfirmClaimingScreen extends StatefulWidget {
 
   final QrModel payload;
   final QrProvider handler;
-
   @override
   State<ConfirmClaimingScreen> createState() => _ConfirmClaimingScreenState();
 }
@@ -25,8 +25,15 @@ class _ConfirmClaimingScreenState extends State<ConfirmClaimingScreen> {
   // ── Confirm ────────────────────────────────────────────────────
 
   Future<void> _onConfirm() async {
+    if (_meetupDateTime == null) return; // safety guard
     setState(() => _isLoading = true);
-
+    await FirebaseFirestore.instance
+        .collection('chats')
+        .doc(widget.payload.chatId)
+        .update({
+          'meetupTime': Timestamp.fromDate(_meetupDateTime!),
+          'claimed': true,
+        });
     final result = await widget.handler.confirmClaiming(widget.payload);
 
     if (!mounted) return;
@@ -96,9 +103,11 @@ class _ConfirmClaimingScreenState extends State<ConfirmClaimingScreen> {
   // ── Build ──────────────────────────────────────────────────────
 
   @override
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final hasMeetup = _meetupDateTime != null;
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -117,7 +126,6 @@ class _ConfirmClaimingScreenState extends State<ConfirmClaimingScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const Spacer(),
-
               // ── Icon ──
               Container(
                 width: 72,
@@ -141,7 +149,6 @@ class _ConfirmClaimingScreenState extends State<ConfirmClaimingScreen> {
                 ),
               ),
               const SizedBox(height: 28),
-
               // ── Question ──
               Text(
                 'Do you want to confirm\nthis transaction?',
@@ -153,12 +160,80 @@ class _ConfirmClaimingScreenState extends State<ConfirmClaimingScreen> {
               ),
               const SizedBox(height: 28),
 
-              const Spacer(),
+              // ── Meetup picker ──
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Set Meetup Time',
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: colorScheme.onSurfaceVariant,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  hasMeetup
+                      // ── Locked display once set ──
+                      ? Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                          decoration: BoxDecoration(
+                            color: colorScheme.primaryContainer,
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.lock_rounded,
+                                size: 16,
+                                color: colorScheme.primary,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  _formatMeetup(_meetupDateTime!),
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: colorScheme.primary,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      // ── Tap to set ──
+                      : OutlinedButton.icon(
+                          onPressed: _isLoading ? null : _pickMeetupDateTime,
+                          icon: const Icon(Icons.calendar_month_rounded),
+                          label: const Text('Choose date & time'),
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: const Size(double.infinity, 52),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            side: BorderSide(color: colorScheme.outline),
+                          ),
+                        ),
+                  if (!hasMeetup) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      'Required before confirming',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: colorScheme.error,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
 
+              const Spacer(),
               // ── Buttons ──
               Row(
                 children: [
-                  // No
                   Expanded(
                     child: OutlinedButton(
                       onPressed: _isLoading ? null : _onCancel,
@@ -172,11 +247,11 @@ class _ConfirmClaimingScreenState extends State<ConfirmClaimingScreen> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  // Yes
                   Expanded(
                     flex: 2,
                     child: FilledButton(
-                      onPressed: _isLoading ? null : _onConfirm,
+                      // disabled until meetup is set
+                      onPressed: _isLoading || !hasMeetup ? null : _onConfirm,
                       style: FilledButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
@@ -206,6 +281,55 @@ class _ConfirmClaimingScreenState extends State<ConfirmClaimingScreen> {
         ),
       ),
     );
+  }
+
+  DateTime? _meetupDateTime; // add this to your state
+
+  Future<void> _pickMeetupDateTime() async {
+    final date = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now().add(const Duration(hours: 1)),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 30)),
+    );
+    if (date == null || !mounted) return;
+
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+    if (time == null || !mounted) return;
+
+    setState(() {
+      _meetupDateTime = DateTime(
+        date.year,
+        date.month,
+        date.day,
+        time.hour,
+        time.minute,
+      );
+    });
+  }
+
+  String _formatMeetup(DateTime dt) {
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    final hour = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
+    final minute = dt.minute.toString().padLeft(2, '0');
+    final ampm = dt.hour < 12 ? 'AM' : 'PM';
+    return '${months[dt.month - 1]} ${dt.day}, ${dt.year} • $hour:$minute $ampm';
   }
 
   /// Shortens a Firebase UID for display: "abc12...xyz99"
