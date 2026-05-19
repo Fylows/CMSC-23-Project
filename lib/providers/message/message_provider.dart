@@ -106,7 +106,6 @@ class MessageProvider extends ChangeNotifier {
           'claimingId': claimingId,
           'claimerUid': currentUid,
           'claimed': false,
-          'claimDate': null,
         });
       }
 
