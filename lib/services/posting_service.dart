@@ -249,6 +249,15 @@ class PostingService {
     }
   }
 
+  /// delete a claim
+  Future<void> deleteClaim(String claimId) async {
+    try {
+      await firestore.collection('claims').doc(claimId).delete();
+    } catch (e) {
+      throw Exception('Failed to delete claim: $e');
+    }
+  }
+
   /// complete a claim after QR handshake
   Future<void> completeClaim(String postingId, String claimId) async {
     try {

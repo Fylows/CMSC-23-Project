@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
 import 'package:elbi_eats/models/leaderboard_entry_model.dart';
 // ─── Rank Badge ───────────────────────────────────────────────────────────────
 
@@ -62,7 +63,10 @@ class TopAvatar extends StatelessWidget {
                 color: Colors.grey.shade300,
                 image: entry.imageUrl != null
                     ? DecorationImage(
-                        image: NetworkImage(entry.imageUrl!),
+                        image: (entry.imageUrl!.startsWith('data:image')
+                            ? MemoryImage(base64Decode(
+                                entry.imageUrl!.split(',').last))
+                            : NetworkImage(entry.imageUrl!)) as ImageProvider,
                         fit: BoxFit.cover,
                       )
                     : null,
@@ -181,7 +185,10 @@ class LeaderboardRow extends StatelessWidget {
               color: Colors.grey.shade300,
               image: entry.imageUrl != null
                   ? DecorationImage(
-                      image: NetworkImage(entry.imageUrl!),
+                      image: (entry.imageUrl!.startsWith('data:image')
+                          ? MemoryImage(
+                              base64Decode(entry.imageUrl!.split(',').last))
+                          : NetworkImage(entry.imageUrl!)) as ImageProvider,
                       fit: BoxFit.cover,
                     )
                   : null,

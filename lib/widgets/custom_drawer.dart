@@ -43,7 +43,7 @@ class CustomDrawer extends StatelessWidget {
               onTap: () {
                 Navigator.pop(context);
                 if (ModalRoute.of(context)?.settings.name != '/home') {
-                  Navigator.pushNamed(context, '/home');
+                  Navigator.pushReplacementNamed(context, '/home');
                 }
               },
             ),
@@ -56,7 +56,7 @@ class CustomDrawer extends StatelessWidget {
               onTap: () {
                 Navigator.pop(context);
                 if (ModalRoute.of(context)?.settings.name != '/profile') {
-                  Navigator.pushNamed(context, '/profile');
+                  Navigator.pushReplacementNamed(context, '/profile');
                 }
               },
             ),
@@ -68,7 +68,7 @@ class CustomDrawer extends StatelessWidget {
               onTap: () {
                 Navigator.pop(context);
                 if (ModalRoute.of(context)?.settings.name != '/leaderboard') {
-                  Navigator.pushNamed(context, '/leaderboard');
+                  Navigator.pushReplacementNamed(context, '/leaderboard');
                 }
               },
             ),

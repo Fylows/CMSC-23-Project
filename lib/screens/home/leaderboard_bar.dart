@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
 
 class LeaderboardBar extends StatelessWidget {
   final String imageUrl;
@@ -35,7 +36,9 @@ class LeaderboardBar extends StatelessWidget {
             shape: BoxShape.circle,
             border: Border.all(color: _barColor, width: 2),
             image: DecorationImage(
-              image: NetworkImage(imageUrl),
+              image: (imageUrl.startsWith('data:image')
+                  ? MemoryImage(base64Decode(imageUrl.split(',').last))
+                  : NetworkImage(imageUrl)) as ImageProvider,
               fit: BoxFit.cover,
             ),
           ),

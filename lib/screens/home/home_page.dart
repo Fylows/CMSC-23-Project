@@ -5,6 +5,8 @@ import 'package:elbi_eats/screens/home/leaderboard_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:elbi_eats/providers/leaderboard/leaderboard_provider.dart';
 import 'package:elbi_eats/providers/auth/auth_provider.dart';
+import 'package:elbi_eats/providers/posting/posting_provider.dart';
+import 'package:elbi_eats/models/posting_model.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -15,40 +17,27 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final uid = context.read<AuthProvider>().user?.uid;
-      if (uid == null) return;
-      context.read<LeaderboardProvider>().loadLeaderboard(uid);
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final leaderboard = context.read<LeaderboardProvider>();
-    leaderboard.loadLeaderboard(context.read<AuthProvider>().user?.uid ?? '');
+    final leaderboard = context.watch<LeaderboardProvider>();
+
     return Scaffold(
       backgroundColor: const Color(0xFFF2F2F2),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(14),
         child: Column(
           children: [
-            _LeaderboardSection(
-              leaderboard: leaderboard,
-            ), // ← pass the provider here
-            SizedBox(height: 14),
-            _TopPicksSection(),
-            SizedBox(height: 14),
-            _PostedItemsSection(),
-            SizedBox(height: 14),
+            LeaderboardSection(leaderboard: leaderboard),
+            const SizedBox(height: 14),
+            const _TopPicksSection(),
+            const SizedBox(height: 14),
+            const _UserPostedItemsSection(),
+            const SizedBox(height: 14),
           ],
         ),
       ),
     );
   }
 }
-
 // ─── Top Picks Section ────────────────────────────────────────────────────────
 
 class _TopPicksSection extends StatelessWidget {
@@ -108,43 +97,155 @@ class _TopPicksSection extends StatelessWidget {
 
 // ─── Posted Items Section ─────────────────────────────────────────────────────
 
-class _PostedItemsSection extends StatelessWidget {
-  const _PostedItemsSection();
+class _UserPostedItemsSection extends StatelessWidget {
+  const _UserPostedItemsSection();
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      constraints: const BoxConstraints(minHeight: 120),
-      decoration: BoxDecoration(
-        color: const Color(0xFF6BBF6B),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      padding: const EdgeInsets.all(14),
-      child: const Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Your Posted Items',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
+    final authProvider = context.watch<AuthProvider>();
+    final postingProvider = context.watch<PostingProvider>();
+    final userId = authProvider.user?.uid;
+
+    if (userId == null) {
+      return const SizedBox.shrink();
+    }
+
+    return StreamBuilder<List<PostedItem>>(
+      stream: postingProvider.getUserPostingsStream(userId),
+      builder: (context, snapshot) {
+        final items = snapshot.data ?? [];
+
+        return Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: const Color(0xFF6BBF6B),
+            borderRadius: BorderRadius.circular(16),
           ),
-          SizedBox(height: 60),
-          // Placeholder — populate with your items list
-        ],
-      ),
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Your Posted Items',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () =>
+                        Navigator.pushNamed(context, '/posted-items'),
+                    icon: const Icon(
+                      Icons.arrow_forward_ios,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              if (items.isEmpty)
+                const Text(
+                  'You have no posted items yet.',
+                  style: TextStyle(color: Colors.white70),
+                )
+              else
+                SizedBox(
+                  height: 200,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: items.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 12),
+                    itemBuilder: (context, index) {
+                      final item = items[index];
+                      return GestureDetector(
+                        onTap: () =>
+                            Navigator.pushNamed(context, '/posted-items'),
+                        child: Container(
+                          width: 140,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Expanded(
+                                child: ClipRRect(
+                                  borderRadius: const BorderRadius.vertical(
+                                    top: Radius.circular(16),
+                                  ),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF9B7FD4),
+                                      image: item.photoUrl != null
+                                          ? DecorationImage(
+                                              image: NetworkImage(
+                                                item.photoUrl!,
+                                              ),
+                                              fit: BoxFit.cover,
+                                            )
+                                          : null,
+                                    ),
+                                    child: item.photoUrl == null
+                                        ? const Icon(
+                                            Icons.fastfood,
+                                            color: Colors.white30,
+                                            size: 36,
+                                          )
+                                        : null,
+                                  ),
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(10),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      item.itemName,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                        fontSize: 14,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 5),
+                                    Text(
+                                      'Stock ${item.stock}',
+                                      style: const TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
 
-class _LeaderboardSection extends StatelessWidget {
+class LeaderboardSection extends StatelessWidget {
   final LeaderboardProvider leaderboard;
 
-  const _LeaderboardSection({required this.leaderboard});
-
+  const LeaderboardSection({super.key, required this.leaderboard});
   final tempPfp =
       'https://www.gravatar.com/avatar/?d=mp'; // ← grey silhouette, no face;
   @override

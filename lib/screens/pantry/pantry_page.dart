@@ -17,7 +17,8 @@ class PantryPage extends StatefulWidget {
 
 class _PantryPageState extends State<PantryPage> {
   late final searchController;
-  String selectedFilter = 'available'; // available, expired, claimed, bids, completed, reserved
+  String selectedFilter =
+      'available'; // available, expired, claimed, bids, completed, reserved
   bool showOnlyMyItems = false;
 
   @override
@@ -52,7 +53,7 @@ class _PantryPageState extends State<PantryPage> {
         ),
         centerTitle: true,
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1), 
+          preferredSize: const Size.fromHeight(1),
           child: Container(color: Colors.grey[300], height: 1),
         ),
       ),
@@ -91,7 +92,7 @@ class _PantryPageState extends State<PantryPage> {
                   Row(
                     children: [
                       Checkbox(
-                        value: showOnlyMyItems, 
+                        value: showOnlyMyItems,
                         onChanged: (value) {
                           setState(() {
                             showOnlyMyItems = value ?? false;
@@ -111,7 +112,7 @@ class _PantryPageState extends State<PantryPage> {
             // ======== FEED =============
             Expanded(
               child: StreamBuilder<List<PostedItem>>(
-                stream: postingProvider.getAllPostingsStream(), 
+                stream: postingProvider.getAllPostingsStream(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
@@ -122,7 +123,11 @@ class _PantryPageState extends State<PantryPage> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.inbox, size: 64, color: Colors.grey.shade300),
+                          Icon(
+                            Icons.inbox,
+                            size: 64,
+                            color: Colors.grey.shade300,
+                          ),
                           const SizedBox(height: 16),
                           Text(
                             'No items available',
@@ -140,82 +145,109 @@ class _PantryPageState extends State<PantryPage> {
 
                   // apply filter based on selected tab
                   if (selectedFilter == 'reserved') {
-                    items = items.where((item) => item.status == 'reserved').toList();
+                    items = items
+                        .where((item) => item.status == 'reserved')
+                        .toList();
                   } else if (selectedFilter == 'expired') {
                     items = items
-                      .where((item) => item.expirationDate.isBefore(DateTime.now()))
-                      .toList();
+                        .where(
+                          (item) =>
+                              item.expirationDate.isBefore(DateTime.now()),
+                        )
+                        .toList();
                   } else if (selectedFilter == 'claimed') {
                     // show items user has claimed (pending or accepted)
-                    items = items.where((item) => item.claimedBy == authProvider.user?.uid).toList();
+                    items = items
+                        .where(
+                          (item) => item.claimedBy == authProvider.user?.uid,
+                        )
+                        .toList();
                   } else if (selectedFilter == 'bids') {
                     // show items with multiple pending claims
                     // note: filter will be done in itembuilder via stream
-                    items = items.where((item) => item.status == 'available').toList();
-                  }  else if (selectedFilter == 'completed') {
-                    items = items.where((item) => item.status == 'completed').toList();
+                    items = items
+                        .where((item) => item.status == 'available')
+                        .toList();
+                  } else if (selectedFilter == 'completed') {
+                    items = items
+                        .where((item) => item.status == 'completed')
+                        .toList();
                   } else {
                     // 'available' - default
-                    items = items.where((item) => item.status == 'available').toList();
+                    items = items
+                        .where((item) => item.status == 'available')
+                        .toList();
                   }
 
                   // filter by user's items if checked
                   if (showOnlyMyItems && authProvider.user != null) {
                     items = items
-                      .where((item) => item.posterId == authProvider.user!.uid)
-                      .toList();
+                        .where(
+                          (item) => item.posterId == authProvider.user!.uid,
+                        )
+                        .toList();
                   }
 
                   // filter by search query
                   if (searchController.text.isNotEmpty) {
                     final query = searchController.text.toLowerCase();
                     items = items
-                      .where((item) =>
-                        item.itemName.toLowerCase().contains(query) ||
-                        item.description.toLowerCase().contains(query))
-                      .toList();
+                        .where(
+                          (item) =>
+                              item.itemName.toLowerCase().contains(query) ||
+                              item.description.toLowerCase().contains(query),
+                        )
+                        .toList();
                   }
 
                   return GridView.builder(
                     padding: const EdgeInsets.all(12),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 12,
-                      crossAxisSpacing: 12,
-                      childAspectRatio: 0.75
-                    ),
-                    itemCount: items.length, 
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 12,
+                          crossAxisSpacing: 12,
+                          childAspectRatio: 0.75,
+                        ),
+                    itemCount: items.length,
                     itemBuilder: (context, index) {
                       final item = items[index];
 
                       // special handling for "bids" filter
                       if (selectedFilter == 'bids') {
                         return StreamBuilder<List<Claim>>(
-                          stream: postingProvider.getClaimsForPostingStream(item.id), 
+                          stream: postingProvider.getClaimsForPostingStream(
+                            item.id,
+                          ),
                           builder: (context, claimsSnapshot) {
                             // only show items with 2+ pending claims
-                            if (!claimsSnapshot.hasData || claimsSnapshot.data!.where((c) => c.status == 'pending').length < 2) {
+                            if (!claimsSnapshot.hasData ||
+                                claimsSnapshot.data!
+                                        .where((c) => c.status == 'pending')
+                                        .length <
+                                    2) {
                               return const SizedBox.shrink();
                             }
                             return ItemCard(
-                              item: item, 
+                              item: item,
                               onTap: () {
                                 Navigator.push(
-                                  context, 
+                                  context,
                                   MaterialPageRoute(
-                                    builder: (context) => ItemDetailPage(item: item),
+                                    builder: (context) =>
+                                        ItemDetailPage(item: item),
                                   ),
                                 );
-                              }
+                              },
                             );
-                          }
+                          },
                         );
                       }
                       return ItemCard(
                         item: item,
                         onTap: () {
                           Navigator.push(
-                            context, 
+                            context,
                             MaterialPageRoute(
                               builder: (context) => ItemDetailPage(item: item),
                             ),
@@ -236,15 +268,15 @@ class _PantryPageState extends State<PantryPage> {
 
           return FloatingActionButton(
             onPressed: isVerified
-              ? () => Navigator.pushNamed(context, '/post-item')
-              : () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Complete verification to post items'),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-              },
+                ? () => Navigator.pushNamed(context, '/post-item')
+                : () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Complete verification to post items'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  },
             backgroundColor: isVerified ? const Color(0xFFFA5800) : Colors.grey,
             child: const Icon(Icons.add),
           );
@@ -281,11 +313,7 @@ class ItemCard extends StatelessWidget {
   final PostedItem item;
   final VoidCallback onTap;
 
-  const ItemCard({
-    required this.item,
-    required this.onTap,
-    super.key,
-  });
+  const ItemCard({required this.item, required this.onTap, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -304,24 +332,24 @@ class ItemCard extends StatelessWidget {
                 topRight: Radius.circular(12),
               ),
               child: item.photoUrl != null
-                ? Image.network(
-                    item.photoUrl!,
-                    height: 140,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        height: 140,
-                        color: Colors.grey.shade300,
-                        child: const Icon(Icons.broken_image),
-                      );
-                    },
-                )
-              : Container(
-                  height: 140,
-                  color: Colors.grey.shade300,
-                  child: const Icon(Icons.image),
-                ),
+                  ? Image.network(
+                      item.photoUrl!,
+                      height: 140,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          height: 140,
+                          color: Colors.grey.shade300,
+                          child: const Icon(Icons.broken_image),
+                        );
+                      },
+                    )
+                  : Container(
+                      height: 140,
+                      color: Colors.grey.shade300,
+                      child: const Icon(Icons.image),
+                    ),
             ),
 
             // info
@@ -343,7 +371,7 @@ class ItemCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
 
-                    // tags 
+                    // tags
                     Wrap(
                       spacing: 4,
                       children: item.selectedTags.take(2).map((tag) {
@@ -383,11 +411,11 @@ class ItemCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(fontSize: 11),
-                    )
+                    ),
                   ],
                 ),
-              )
-            )
+              ),
+            ),
           ],
         ),
       ),
