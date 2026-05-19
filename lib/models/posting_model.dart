@@ -12,6 +12,8 @@ class PostedItem {
   final String? claimedBy;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final double? latitude;
+  final double? longitude;
 
   PostedItem({
     required this.id,
@@ -27,6 +29,8 @@ class PostedItem {
     this.claimedBy,
     required this.createdAt,
     required this.updatedAt,
+    this.latitude,
+    this.longitude,
   });
 
   /// convert to map for firestore
@@ -45,6 +49,8 @@ class PostedItem {
       'claimedBy': claimedBy,
       'createdAt': createdAt,
       'updatedAt': updatedAt,
+      'latitude': latitude,
+      'longitude': longitude,
     };
   }
 
@@ -64,6 +70,8 @@ class PostedItem {
       claimedBy: map['claimedBy'],
       createdAt: (map['createdAt'] as dynamic).toDate(),
       updatedAt: (map['updatedAt'] as dynamic).toDate(), 
+      latitude: map['latitude'],
+      longitude: map['longitude'],
     );
   }
   
@@ -82,6 +90,8 @@ class PostedItem {
     String? claimedBy,
     DateTime? createdAt,
     DateTime? updatedAt,
+    double? latitude,
+    double? longitude,
   }) {
     return PostedItem(
       id: id ?? this.id, 
@@ -95,6 +105,8 @@ class PostedItem {
       status: status ?? this.status, 
       createdAt: createdAt ?? this.createdAt, 
       updatedAt: updatedAt ?? this.updatedAt,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
     );
   }
 }
@@ -108,6 +120,8 @@ class Claim {
   final String status; // 'pending' | 'accepted' | 'rejected' | 'completed'
   final DateTime claimedAt;
   final DateTime? resolvedAt;
+  final double? latitude;
+  final double? longitude;
 
   Claim({
     required this.id,
@@ -117,7 +131,9 @@ class Claim {
     required this.claimerName,
     required this.status,
     required this.claimedAt,
-    this.resolvedAt
+    this.resolvedAt,
+    this.latitude,
+    this.longitude,
   });
 
   /// convert to map for firestore
@@ -131,6 +147,8 @@ class Claim {
       'status': status,
       'claimedAt': claimedAt,
       'resolvedAt': resolvedAt,
+      'latitude': latitude,
+      'longitude': longitude,
     };
   }
 
@@ -145,6 +163,8 @@ class Claim {
       status: map['status'] ?? 'pending',
       claimedAt: (map['claimedAt'] as dynamic).toDate(),
       resolvedAt: map['resolvedAt']?.toDate(),
+      latitude: map['latitude'],
+      longitude: map['longitude'],
     );
   }
 
@@ -158,6 +178,8 @@ class Claim {
     String? status,
     DateTime? claimedAt,
     DateTime? resolvedAt,
+    double? latitude,
+    double? longitude,
   }) {
     return Claim(
       id: id ?? this.id,
@@ -168,6 +190,8 @@ class Claim {
       status: status ?? this.status,
       claimedAt: claimedAt ?? this.claimedAt,
       resolvedAt: resolvedAt ?? this.resolvedAt,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
     );
   }
 }

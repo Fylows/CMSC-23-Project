@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/user/user_model.dart';
 import '../../services/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:elbi_eats/services/location_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   final AuthService authService = AuthService();
@@ -27,6 +28,13 @@ class AuthProvider extends ChangeNotifier {
 
   AuthProvider() {
     authService.authStateChanges.listen(onAuthStateChanged);
+    
+    // also check if user is already logged in (from previous session)
+    final currentUser = firebase_auth.FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      print('DEBUG: Already logged in user detected: ${currentUser.uid}');
+      loadUserFromFirestore(currentUser.uid);
+    }
   }
 
   void onAuthStateChanged(firebase_auth.User? firebaseUser) {
@@ -41,22 +49,33 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> loadUserFromFirestore(String uid) async {
+    print('DEBUG: loadUserFromFirestore called for uid=$uid');
     try {
       final userDoc = await firestore.collection('users').doc(uid).get();
+      print('DEBUG: userDoc.exists=${userDoc.exists}');
 
       if (userDoc.exists) {
-        user = User.fromMap({
-          ...userDoc.data() ?? {},
-          'uid': uid,
-        });
-
-        // save FCM token to Firestore (FCM stands for Firebase Cloud Messaging)
-        final token =  await NotificationService().getToken();
+        print('DEBUG: Raw data: ${userDoc.data()}');
+        
+        try {
+          user = User.fromMap({
+            ...userDoc.data() ?? {},
+            'uid': uid,
+          });
+          print('DEBUG loadUserFromFirestore: isVerified=${user?.isVerified}, displayName=${user?.displayName}');
+        } catch (parseError) {
+          print('ERROR: Failed to parse user: $parseError');
+          rethrow;
+        }
+        
+        final token = await NotificationService().getToken();
         if (token != null) {
           await firestore.collection('users').doc(uid).update({
             'fcmTokens': FieldValue.arrayUnion([token]),
           });
         }
+
+        await saveUserLocation(uid);
 
       } else {
         // fallback if doc doesnt exist
@@ -225,6 +244,29 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> updateUserSettings({
+    required double discoveryRadius,
+    required Map<String, bool> notificationPreferences,
+  }) async {
+    if (user == null) return;
+
+    try {
+      await firestore.collection('users').doc(user!.uid).update({
+        'discoveryRadius': discoveryRadius,
+        'notificationPreferences': notificationPreferences,
+      });
+
+      user = user!.copyWith(
+        discoveryRadius: discoveryRadius,
+        notificationPreferences: notificationPreferences,
+      );
+      notifyListeners();
+    } catch (e) {
+      print('Error updating user settings: $e');
+      rethrow;
+    }
+  }
+
   // ==== HELPER METHODS ====
   void setLoading(bool value) {
     isLoading = value;
@@ -238,5 +280,15 @@ class AuthProvider extends ChangeNotifier {
 
   void clearError() {
     errorMessage = null;
+  }
+
+  // In your login/signup method after user is loaded:
+  Future<void> saveUserLocation(String uid) async {
+    final location = await LocationService().getCurrentLocation();
+    await firestore.collection('users').doc(uid).update({
+      'latitude': location?.latitude ?? 0,
+      'longitude': location?.longitude ?? 0,
+      'discoveryRadius': 5.0, // default 5km
+    });
   }
 }

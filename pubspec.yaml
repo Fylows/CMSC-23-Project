@@ -47,6 +47,8 @@ dependencies:
   firebase_messaging: ^16.2.2
   qr_flutter: ^4.1.0
   mobile_scanner: ^5.0.0
+  geolocator: ^14.0.2
+  location: ^8.0.1
 
 dev_dependencies:
   flutter_test:

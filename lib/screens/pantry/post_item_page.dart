@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import 'dart:io';
 import '../../providers/auth/auth_provider.dart';
 import '../../providers/posting/posting_provider.dart';
+import 'package:location/location.dart';
+import 'package:elbi_eats/services/location_service.dart';
 
 class PostItemPage extends StatefulWidget {
   const PostItemPage({super.key});
@@ -226,6 +228,8 @@ class _PostItemPageState extends State<PostItemPage> {
     }
 
     try {
+      final location = await LocationService().getCurrentLocation();
+
       await postingProvider.createPosting(
         currentUser: authProvider.user!,
         itemName: itemNameController.text.trim(),
@@ -233,6 +237,7 @@ class _PostItemPageState extends State<PostItemPage> {
         photoFile: selectedImage,
         selectedTags: selectedTags.toList(),
         expirationDate: expirationDate!,
+        location: location,
       );
 
       if (mounted) {

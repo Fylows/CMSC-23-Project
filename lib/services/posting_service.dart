@@ -76,6 +76,8 @@ class PostingService {
     required File? photoFile, // the photo
     required List<String> selectedTags,
     required DateTime expirationDate,
+    required double? latitude,   // ← Add these
+    required double? longitude,  // ← Add these
   }) async {
     try {
       // create posting document first (w/o the photo url)
@@ -105,6 +107,8 @@ class PostingService {
         expirationDate: expirationDate, 
         status: 'available', 
         claimedBy: null,
+        latitude: latitude,      // ← Add these
+        longitude: longitude,    // ← Add these
         createdAt: now, 
         updatedAt: now,
       );

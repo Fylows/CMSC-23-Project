@@ -13,6 +13,10 @@ class User {
   final int contributorScore; // Defaults to 0 or 67
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final double? latitude;
+  final double? longitude;
+  final double discoveryRadius; // in km, default 5.0
+  final Map<String, bool>? notificationPreferences;
 
   User({
     required this.uid,
@@ -29,6 +33,10 @@ class User {
     this.contributorScore = 0,
     this.createdAt,
     this.updatedAt,
+    this.latitude,
+    this.longitude,
+    this.discoveryRadius = 5.0,
+    this.notificationPreferences,
   });
 
   // convert user to map so we can save to firestore
@@ -48,6 +56,10 @@ class User {
       'contributorScore': contributorScore,
       'createdAt': createdAt,
       'updatedAt': updatedAt,
+      'latitude': latitude,
+      'longitude': longitude,
+      'discoveryRadius': discoveryRadius,
+      'notificationPreferences': notificationPreferences,
     };
   }
 
@@ -59,7 +71,7 @@ class User {
       email: map['email'] ?? '',
       displayName: map['displayName'],
       username: map['username'],
-      firstName: map['firstName'] ?? map['firstname'], // fallback to old
+      firstName: map['firstName'] ?? map['firstname'],
       lastName: map['lastName'],
       dateOfBirth: map['dateOfBirth']?.toDate(),
       selectedTags: List<String>.from(map['selectedTags'] ?? []),
@@ -69,6 +81,17 @@ class User {
       contributorScore: map['contributorScore'] ?? 0,
       createdAt: map['createdAt']?.toDate(),
       updatedAt: map['updatedAt']?.toDate(),
+      latitude: (map['latitude'] as num?)?.toDouble(),
+      longitude: (map['longitude'] as num?)?.toDouble(),
+      discoveryRadius: (map['discoveryRadius'] as num?)?.toDouble() ?? 5.0,
+      notificationPreferences: map['notificationPreferences'] != null
+          ? Map<String, bool>.from(map['notificationPreferences'] as Map)
+          : {
+            'chat': true,
+            'claim': true,
+            'claimStatus': true,
+            'posting': true,
+          },
     );
   }
 
@@ -88,6 +111,10 @@ class User {
     int? contributorScore,
     DateTime? createdAt,
     DateTime? updatedAt,
+    double? latitude,
+    double? longitude,
+    double? discoveryRadius,
+    Map<String, bool>? notificationPreferences,
   }) {
     return User(
       uid: uid ?? this.uid,
@@ -104,6 +131,10 @@ class User {
       contributorScore: contributorScore ?? this.contributorScore,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      discoveryRadius: discoveryRadius ?? this.discoveryRadius,
+      notificationPreferences: notificationPreferences ?? this.notificationPreferences,
       
     );
   }
