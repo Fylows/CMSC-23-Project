@@ -104,8 +104,9 @@ class MessageProvider extends ChangeNotifier {
           'lastMessageTime': FieldValue.serverTimestamp(),
           'createdAt': FieldValue.serverTimestamp(),
           'claimingId': claimingId,
-          'claimerUid': currentUid,
+          'claimerUid': otherUserId,
           'claimed': false,
+          'claimTime': null,
         });
       }
 
@@ -120,7 +121,7 @@ class MessageProvider extends ChangeNotifier {
     }
   }
   // ─── Messages ────────────────────────────────────────────────────────────
-
+  
   /// Stream of messages for a given chatId
   Stream<List<Message>> watchMessages(String chatId) {
     return _db
@@ -132,6 +133,7 @@ class MessageProvider extends ChangeNotifier {
         .map(
           (snap) => snap.docs.map((d) => Message.fromMap(d.data())).toList(),
         );
+      
   }
 
   /// Send a message and update lastMessage on the chat doc

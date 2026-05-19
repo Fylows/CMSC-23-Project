@@ -12,6 +12,7 @@ import '../../models/posting_model.dart';
 import '../../models/item_model.dart' as item_model;
 import '../pantry/item_detail_page.dart';
 import 'transaction_detail_page.dart';
+import '../../models/claim_model.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -379,14 +380,21 @@ class _ProfilePageState extends State<ProfilePage> {
                             backgroundImage: _pickedImage != null
                                 ? FileImage(_pickedImage!)
                                 : (user.profilePictureUrl != null
-                                    ? (user.profilePictureUrl!
-                                            .startsWith('data:image')
-                                        ? MemoryImage(base64Decode(user
-                                            .profilePictureUrl!
-                                            .split(',')
-                                            .last))
-                                        : NetworkImage(user.profilePictureUrl!))
-                                    : null) as ImageProvider?,
+                                          ? (user.profilePictureUrl!.startsWith(
+                                                  'data:image',
+                                                )
+                                                ? MemoryImage(
+                                                    base64Decode(
+                                                      user.profilePictureUrl!
+                                                          .split(',')
+                                                          .last,
+                                                    ),
+                                                  )
+                                                : NetworkImage(
+                                                    user.profilePictureUrl!,
+                                                  ))
+                                          : null)
+                                      as ImageProvider?,
                             child:
                                 _pickedImage == null &&
                                     user.profilePictureUrl == null
@@ -995,13 +1003,15 @@ class _ProfilePageState extends State<ProfilePage> {
                 price: posting?.price ?? 0.0,
                 status: statusLabel,
                 requestedAt: claim.claimedAt,
-                respondedAt: (claim.status == 'accepted' ||
+                respondedAt:
+                    (claim.status == 'accepted' ||
                         claim.status == 'rejected' ||
                         claim.status == 'completed')
                     ? claim.resolvedAt
                     : null,
-                completedAt:
-                    (claim.status == 'completed') ? claim.resolvedAt : null,
+                completedAt: (claim.status == 'completed')
+                    ? claim.resolvedAt
+                    : null,
               );
               Navigator.push(
                 context,

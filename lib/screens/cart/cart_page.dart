@@ -6,6 +6,7 @@ import '../../providers/posting/posting_provider.dart';
 import '../../models/posting_model.dart';
 import '../../widgets/custom_drawer.dart';
 import '../pantry/item_detail_page.dart';
+import '../../models/claim_model.dart';
 
 class CartPage extends StatefulWidget {
   const CartPage({super.key});
@@ -18,7 +19,7 @@ class _CartPageState extends State<CartPage> {
   bool isDeleteMode = false;
   Set<String> selectedClaimIds = {};
   Map<String, int> selectedQuantities = {};
-  
+
   // Cache for fetched cart items to avoid re-fetching on every build
   Map<String, List<CartItemData>>? _cachedGroupedItems;
   List<Claim>? _lastClaims;
@@ -63,7 +64,9 @@ class _CartPageState extends State<CartPage> {
                   ),
                   IconButton(
                     icon: Icon(
-                      isDeleteMode ? Icons.check_circle_outline : Icons.delete_outline,
+                      isDeleteMode
+                          ? Icons.check_circle_outline
+                          : Icons.delete_outline,
                       color: Colors.black,
                     ),
                     onPressed: () {
@@ -81,7 +84,8 @@ class _CartPageState extends State<CartPage> {
             child: StreamBuilder<List<Claim>>(
               stream: postingProvider.getUserClaimsStream(userId),
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting && _cachedGroupedItems == null) {
+                if (snapshot.connectionState == ConnectionState.waiting &&
+                    _cachedGroupedItems == null) {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (snapshot.hasError) {
@@ -94,11 +98,13 @@ class _CartPageState extends State<CartPage> {
                 }
 
                 final claims = snapshot.data!;
-                
+
                 return FutureBuilder<Map<String, List<CartItemData>>>(
                   future: _getCartItemsGroupedBySeller(claims, postingProvider),
                   builder: (context, itemsSnapshot) {
-                    if (itemsSnapshot.connectionState == ConnectionState.waiting && _cachedGroupedItems == null) {
+                    if (itemsSnapshot.connectionState ==
+                            ConnectionState.waiting &&
+                        _cachedGroupedItems == null) {
                       return const Center(child: CircularProgressIndicator());
                     }
                     if (itemsSnapshot.hasData) {
@@ -118,7 +124,8 @@ class _CartPageState extends State<CartPage> {
   bool _areClaimsSame(List<Claim> list1, List<Claim> list2) {
     if (list1.length != list2.length) return false;
     for (int i = 0; i < list1.length; i++) {
-      if (list1[i].id != list2[i].id || list1[i].status != list2[i].status) return false;
+      if (list1[i].id != list2[i].id || list1[i].status != list2[i].status)
+        return false;
     }
     return true;
   }
@@ -478,7 +485,9 @@ class _CartPageState extends State<CartPage> {
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Selected items deleted from cart.'),
+                              content: Text(
+                                'Selected items deleted from cart.',
+                              ),
                             ),
                           );
                         }

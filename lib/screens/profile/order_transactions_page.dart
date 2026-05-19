@@ -5,6 +5,7 @@ import '../../providers/posting/posting_provider.dart';
 import '../../models/item_model.dart' as item_model;
 import '../../models/posting_model.dart';
 import 'transaction_detail_page.dart';
+import '../../models/claim_model.dart';
 
 class OrderTransactionsPage extends StatelessWidget {
   const OrderTransactionsPage({super.key});
